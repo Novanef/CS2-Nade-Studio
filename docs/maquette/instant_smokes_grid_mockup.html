@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CS2 Nade Studio — Instant smokes (groupe de spawns)</title>
+<style>
+:root {
+  --surface-0: #ffffff;
+  --surface-1: #f7f7f5;
+  --surface-2: #eeeeec;
+  --border: rgba(0,0,0,0.08);
+  --border-strong: rgba(0,0,0,0.25);
+  --border-accent: #93c5fd;
+  --bg-accent: #eff6ff;
+  --text-accent: #2563eb;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+  --radius: 8px;
+}
+body { font-family: system-ui, -apple-system, sans-serif; background: var(--surface-0); color: #111827; margin: 0; padding: 24px; }
+button, input, select { font-family: inherit; font-size: 14px; border: 0.5px solid var(--border); border-radius: var(--radius); padding: 6px 10px; background: var(--surface-1); color: inherit; }
+button { cursor: pointer; }
+</style>
+</head>
+<body>
+<h2 class="sr-only">Maquette révisée de la vue groupée "instant smoke" : un radar zoomé sur le cluster de spawns avec des marqueurs numérotés, et une grille de vraies captures d'écran (pas des schémas illustratifs), une par spawn, y compris un état "pas encore capturé" pour un spawn sans lineup.</h2>
+<style>
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.pill{font-size:13px;padding:6px 12px}
+
+.radar-zoom {
+  position: relative;
+  width: 100%;
+  max-width: 340px;
+  aspect-ratio: 1/1;
+  margin: 0 auto;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--surface-1);
+}
+.radar-zoom svg { position:absolute; inset:0; }
+.spawn-dot {
+  position: absolute;
+  width: 26px; height: 26px;
+  margin: -13px 0 0 -13px;
+  border-radius: 50%;
+  background: var(--surface-0);
+  border: 2px solid var(--text-accent);
+  color: var(--text-accent);
+  font-size: 12px;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.spawn-dot.active { background: var(--text-accent); color: var(--surface-0); box-shadow: 0 0 0 3px var(--bg-accent); }
+
+.shot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+}
+.shot-card {
+  background: var(--surface-2);
+  border: 2px solid transparent;
+  border-radius: var(--radius);
+  padding: 8px;
+  cursor: pointer;
+}
+.shot-card.active { border-color: var(--border-accent); }
+.shot-card p { margin: 0 0 6px; font-size: 11px; color: var(--text-secondary); text-align: center; }
+.shot-thumb {
+  position: relative;
+  aspect-ratio: 4/3;
+  border-radius: 6px;
+  overflow: hidden;
+  /* simule une vraie capture d'écran en jeu, pas un schéma — voir CLAUDE.md
+     (masquage HUD + viseur magenta dessiné par l'app au centre exact) */
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(255,255,255,0.10), transparent 55%),
+    linear-gradient(160deg, #2b2f26 0%, #3a3f30 45%, #1c1f18 100%);
+}
+.shot-thumb::after {
+  content: "";
+  position: absolute; top: 50%; left: 50%;
+  width: 14px; height: 14px;
+  transform: translate(-50%, -50%);
+  background:
+    linear-gradient(#e6007e, #e6007e) center/100% 2px no-repeat,
+    linear-gradient(#e6007e, #e6007e) center/2px 100% no-repeat;
+}
+.shot-missing {
+  aspect-ratio: 4/3;
+  border-radius: 6px;
+  border: 1.5px dashed var(--border-strong);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-muted);
+  font-size: 11px;
+  text-align: center;
+  padding: 6px;
+}
+.spawn-badge {
+  position: absolute; top: 6px; left: 6px;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.55);
+  color: #fff;
+  font-size: 11px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+</style>
+<div style="background:var(--surface-1);border:0.5px solid var(--border);border-radius:12px;padding:1rem 1.25rem;">
+
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+    <div>
+      <p style="font-size:15px;font-weight:500;margin:0;">Window smoke</p>
+      <p style="font-size:12px;color:var(--text-secondary);margin:2px 0 0;">Mirage · CT · 4/5 spawns capturés</p>
+    </div>
+    <span style="background:var(--bg-accent);color:var(--text-accent);font-size:12px;padding:4px 12px;border-radius:var(--radius);">Instant</span>
+  </div>
+
+  <div style="background:var(--surface-2);border:0.5px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:16px;">
+    <p style="font-size:12px;color:var(--text-secondary);margin:0 0 10px;">Repérez votre spawn — radar zoomé sur le cluster (pas la carte entière)</p>
+    <div class="radar-zoom">
+      <svg viewBox="0 0 340 340">
+        <rect width="340" height="340" fill="var(--surface-1)"/>
+        <rect x="20" y="30" width="150" height="120" fill="none" stroke="var(--border-strong)" stroke-width="2"/>
+        <rect x="190" y="10" width="130" height="90" fill="none" stroke="var(--border-strong)" stroke-width="2"/>
+        <rect x="60" y="170" width="200" height="140" fill="none" stroke="var(--border-strong)" stroke-width="2"/>
+        <rect x="150" y="60" width="18" height="90" fill="var(--border-strong)" opacity="0.5"/>
+      </svg>
+      <div class="spawn-dot active" style="left:34%;top:28%;">1</div>
+      <div class="spawn-dot" style="left:52%;top:20%;">2</div>
+      <div class="spawn-dot" style="left:68%;top:38%;">3</div>
+      <div class="spawn-dot" style="left:44%;top:62%;">4</div>
+      <div class="spawn-dot" style="left:60%;top:78%;">5</div>
+    </div>
+  </div>
+
+  <div class="shot-grid">
+
+    <div class="shot-card active">
+      <p>Spawn 1</p>
+      <div class="shot-thumb"><span class="spawn-badge">1</span></div>
+    </div>
+
+    <div class="shot-card">
+      <p>Spawn 2</p>
+      <div class="shot-thumb"><span class="spawn-badge">2</span></div>
+    </div>
+
+    <div class="shot-card">
+      <p>Spawn 3</p>
+      <div class="shot-thumb"><span class="spawn-badge">3</span></div>
+    </div>
+
+    <div class="shot-card">
+      <p>Spawn 4</p>
+      <div class="shot-thumb"><span class="spawn-badge">4</span></div>
+    </div>
+
+    <div class="shot-card" style="cursor:default;">
+      <p>Spawn 5</p>
+      <div class="shot-missing">Pas encore capturé<br>(géométrie à vérifier)</div>
+    </div>
+
+  </div>
+
+</div>
+</body>
+</html>

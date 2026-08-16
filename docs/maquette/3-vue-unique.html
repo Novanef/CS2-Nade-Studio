@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CS2 Nade Studio — Vue unique</title>
+<style>
+:root {
+  --surface-0: #ffffff;
+  --surface-1: #f7f7f5;
+  --surface-2: #eeeeec;
+  --border: rgba(0,0,0,0.08);
+  --border-strong: rgba(0,0,0,0.25);
+  --border-accent: #93c5fd;
+  --bg-accent: #eff6ff;
+  --text-accent: #2563eb;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+  --radius: 8px;
+}
+body { font-family: system-ui, -apple-system, sans-serif; background: var(--surface-0); color: #111827; margin: 0; padding: 24px; }
+button, input, select { font-family: inherit; font-size: 14px; border: 0.5px solid var(--border); border-radius: var(--radius); padding: 6px 10px; background: var(--surface-1); color: inherit; }
+button { cursor: pointer; }
+</style>
+</head>
+<body>
+<h2 class="sr-only">Maquette d'une application de consultation de lineups CS2, avec toutes les informations d'un lineup en plusieurs étapes réunies dans une seule vue : trajet, repère intermédiaire, position et visée de lancer.</h2>
+<style>
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.pill{font-size:13px;padding:6px 12px}
+</style>
+<div style="background:var(--surface-1);border:0.5px solid var(--border);border-radius:12px;padding:1rem 1.25rem;">
+
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+    <select style="width:130px;">
+      <option>Mirage</option>
+      <option>Inferno</option>
+      <option>Ancient</option>
+    </select>
+    <div style="display:flex;gap:4px;">
+      <button class="pill" style="background:var(--bg-accent);color:var(--text-accent);border-color:var(--border-accent);">CT</button>
+      <button class="pill">T</button>
+    </div>
+    <input type="text" placeholder="Rechercher un spot, ex: Palace smoke" style="flex:1;min-width:160px;">
+  </div>
+
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+    <p style="font-size:15px;font-weight:500;margin:0;">Palace smoke</p>
+    <span style="background:var(--bg-accent);color:var(--text-accent);font-size:12px;padding:4px 12px;border-radius:var(--radius);">Jumpthrow</span>
+  </div>
+
+  <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin-bottom:8px;">
+    <div style="background:var(--surface-2);border:0.5px solid var(--border);border-radius:var(--radius);padding:12px;">
+      <p style="font-size:13px;color:var(--text-secondary);margin:0 0 8px;">Position</p>
+      <svg viewBox="0 0 200 160" width="100%" height="130">
+        <rect x="0" y="0" width="200" height="160" fill="var(--surface-1)" rx="6"/>
+        <rect x="20" y="15" width="70" height="90" fill="none" stroke="var(--border-strong)" stroke-width="1.5"/>
+        <rect x="100" y="60" width="80" height="60" fill="none" stroke="var(--border-strong)" stroke-width="1.5"/>
+        <path d="M100 115 Q125 95 150 90" fill="none" stroke="var(--text-accent)" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <circle cx="100" cy="115" r="9" fill="none" stroke="var(--text-accent)" stroke-width="1.5" stroke-dasharray="2 2"/>
+        <circle cx="93" cy="126" r="8" fill="var(--surface-1)" stroke="var(--text-accent)" stroke-width="1"/>
+        <text x="93" y="129" text-anchor="middle" style="font-size:10px;fill:var(--text-accent);">1</text>
+        <circle cx="150" cy="90" r="6" fill="var(--text-accent)"/>
+        <line x1="150" y1="90" x2="150" y2="65" stroke="var(--text-accent)" stroke-width="2"/>
+        <circle cx="163" cy="79" r="8" fill="var(--surface-1)" stroke="var(--text-accent)" stroke-width="1"/>
+        <text x="163" y="82" text-anchor="middle" style="font-size:10px;fill:var(--text-accent);">2</text>
+      </svg>
+      <p style="font-size:12px;color:var(--text-secondary);margin:8px 0 0;">① Repère visuel → ② position de lancer</p>
+    </div>
+    <div style="background:var(--surface-2);border:0.5px solid var(--border);border-radius:var(--radius);padding:12px;">
+      <p style="font-size:13px;color:var(--text-secondary);margin:0 0 8px;">Visée</p>
+      <svg viewBox="0 0 200 160" width="100%" height="130">
+        <rect x="0" y="0" width="200" height="160" fill="var(--surface-1)" rx="6"/>
+        <path d="M0 70 L200 45 L200 160 L0 160 Z" fill="var(--surface-0)"/>
+        <line x1="45" y1="95" x2="59" y2="95" stroke="var(--text-secondary)" stroke-width="1.5" opacity="0.6"/>
+        <line x1="52" y1="88" x2="52" y2="102" stroke="var(--text-secondary)" stroke-width="1.5" opacity="0.6"/>
+        <circle cx="66" cy="106" r="8" fill="var(--surface-1)" stroke="var(--text-secondary)" stroke-width="1"/>
+        <text x="66" y="109" text-anchor="middle" style="font-size:10px;fill:var(--text-secondary);">1</text>
+        <line x1="125" y1="55" x2="145" y2="55" stroke="var(--text-accent)" stroke-width="2"/>
+        <line x1="135" y1="45" x2="135" y2="65" stroke="var(--text-accent)" stroke-width="2"/>
+        <circle cx="135" cy="55" r="9" fill="none" stroke="var(--text-accent)" stroke-width="1" stroke-dasharray="2 2"/>
+        <circle cx="152" cy="42" r="8" fill="var(--surface-1)" stroke="var(--text-accent)" stroke-width="1"/>
+        <text x="152" y="45" text-anchor="middle" style="font-size:10px;fill:var(--text-accent);">2</text>
+      </svg>
+      <p style="font-size:12px;color:var(--text-secondary);margin:8px 0 0;">① alignement en chemin → ② visée de lancer</p>
+    </div>
+  </div>
+
+  <div style="background:var(--surface-2);border:0.5px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-bottom:16px;">
+    <p style="font-size:13px;color:var(--text-secondary);margin:0;">Avancez en marchant jusqu'à aligner l'antenne avec le mur, sautez et lancez sur le coin du toit.</p>
+  </div>
+
+  <p style="font-size:13px;color:var(--text-secondary);margin:0 0 8px;">Autres lineups — Mirage / CT</p>
+  <div style="display:flex;gap:8px;overflow-x:auto;">
+    <div style="min-width:90px;background:var(--surface-2);border:2px solid var(--border-accent);border-radius:var(--radius);padding:8px;font-size:12px;">Palace<br><span style="color:var(--text-secondary);">Smoke</span></div>
+    <div style="min-width:90px;background:var(--surface-2);border:0.5px solid var(--border);border-radius:var(--radius);padding:8px;font-size:12px;">Jungle<br><span style="color:var(--text-secondary);">Flash</span></div>
+    <div style="min-width:90px;background:var(--surface-2);border:0.5px solid var(--border);border-radius:var(--radius);padding:8px;font-size:12px;">Ramp<br><span style="color:var(--text-secondary);">Molotov</span></div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,115 @@
+<!-- @dsCard group="Écrans" -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Nouveau lineup — formulaire</title>
+<style>
+:root {
+  --surface-0: #ffffff;
+  --surface-1: #f7f7f5;
+  --surface-2: #eeeeec;
+  --border: rgba(0, 0, 0, 0.08);
+  --border-strong: rgba(0, 0, 0, 0.25);
+  --border-accent: #93c5fd;
+  --bg-accent: #eff6ff;
+  --text-accent: #2563eb;
+  --text-secondary: #6b7280;
+  --radius: 8px;
+}
+html, body { height: 100%; }
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  background: var(--surface-0);
+  color: #111827;
+  margin: 0;
+  padding: 24px;
+  height: 100vh;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+button, input, select {
+  font-family: inherit;
+  font-size: 13px;
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 4px 8px;
+  background: var(--surface-1);
+  color: inherit;
+}
+button { cursor: pointer; }
+button.pill { font-size: 13px; padding: 6px 12px; }
+
+.panel { background: var(--surface-1); border: 0.5px solid var(--border); border-radius: 12px; padding: 1rem 1.25rem; }
+
+#view-create { flex: 1; display: flex; flex-direction: column; min-height: 0; overflow-y: auto; }
+
+.toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+
+.form-row { display: flex; flex-direction: row; align-items: center; gap: 8px; margin-bottom: 6px; }
+.form-row label { font-size: 12px; color: var(--text-secondary); flex: none; white-space: nowrap; }
+.form-row select, .form-row input { flex: 1; min-width: 0; }
+
+.field-row { display: flex; flex-wrap: wrap; gap: 6px 20px; margin-bottom: 6px; }
+.field-row .form-row { flex: none; }
+.field-row .form-row select { flex: none; width: auto; min-width: 0; }
+
+.card { background: var(--surface-2); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 10px; }
+.card-label { font-size: 13px; color: var(--text-secondary); margin: 0 0 8px; }
+</style>
+</head>
+<body>
+
+<section id="view-create" class="panel">
+  <div class="toolbar">
+    <p style="font-size:15px;font-weight:500;margin:0;">Nouveau lineup</p>
+    <button class="pill" style="margin-left:auto;">Annuler</button>
+  </div>
+
+  <div class="field-row">
+    <div class="form-row">
+      <label>Carte</label>
+      <select><option>Mirage</option></select>
+    </div>
+    <div class="form-row">
+      <label>Camp</label>
+      <select><option>CT</option><option>T</option></select>
+    </div>
+    <div class="form-row">
+      <label>Type de grenade</label>
+      <select><option>Smoke</option><option>Flash</option><option>Molotov</option><option>HE</option><option>Decoy</option></select>
+    </div>
+    <div class="form-row">
+      <label>Déplacement au lancer</label>
+      <select><option>Stand</option><option>Walk</option><option>Run</option><option>Jump</option></select>
+    </div>
+    <div class="form-row">
+      <label>Clic</label>
+      <select><option>Gauche</option><option>Droit</option><option>Milieu</option></select>
+    </div>
+    <div class="form-row">
+      <label>Catégorie</label>
+      <select><option>Standard</option><option>Instant (spawn)</option></select>
+    </div>
+  </div>
+  <div class="field-row">
+    <div class="form-row" style="flex:1;min-width:220px;">
+      <label>Nom du spot</label>
+      <input type="text" value="Palace smoke">
+    </div>
+  </div>
+  <div class="form-row">
+    <label>Notes</label>
+    <input type="text" value="Vise le lampadaire, jump throw">
+  </div>
+
+  <div class="card" style="margin-top:8px;">
+    <p class="card-label">Capture en jeu (plugin)</p>
+    <p style="font-size:12px;color:var(--text-secondary);margin:0;">Voir la fiche « Capture en jeu » pour ce composant.</p>
+  </div>
+</section>
+
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!-- @dsCard group="Composants" -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Capture en jeu — card</title>
+<style>
+:root {
+  --surface-0: #ffffff;
+  --surface-1: #f7f7f5;
+  --surface-2: #eeeeec;
+  --border: rgba(0, 0, 0, 0.08);
+  --border-accent: #93c5fd;
+  --bg-accent: #eff6ff;
+  --text-accent: #2563eb;
+  --text-secondary: #6b7280;
+  --radius: 8px;
+}
+html, body { height: 100%; }
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  background: var(--surface-0);
+  color: #111827;
+  margin: 0;
+  padding: 24px;
+  height: 100vh;
+  box-sizing: border-box;
+  display: flex;
+  overflow: hidden;
+}
+button, input, select {
+  font-family: inherit;
+  font-size: 13px;
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 4px 8px;
+  background: var(--surface-1);
+  color: inherit;
+}
+button { cursor: pointer; }
+button[disabled] { opacity: 0.5; cursor: not-allowed; }
+
+.card { background: var(--surface-2); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 10px; flex: 1; display: flex; flex-direction: column; }
+.card-label { font-size: 13px; color: var(--text-secondary); margin: 0 0 8px; }
+
+.capture-layout { display: flex; gap: 10px; flex: 1; min-height: 0; }
+.capture-media { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.capture-side { width: 230px; flex: none; display: flex; flex-direction: column; min-height: 0; overflow-y: auto; }
+
+.screenshot-preview { display: block; flex: 1; min-height: 60px; width: 100%; object-fit: contain; border-radius: var(--radius); }
+
+.actions-row { display: flex; gap: 8px; margin-top: 8px; }
+.status-line { font-size: 13px; color: var(--text-secondary); margin: 5px 0; }
+.status-line.error { color: #dc2626; }
+</style>
+</head>
+<body>
+
+<div class="card capture-card">
+  <p class="card-label">Capture en jeu (plugin)</p>
+  <div class="capture-layout">
+    <div class="capture-media">
+      <svg class="screenshot-preview" viewBox="0 0 300 225" preserveAspectRatio="xMidYMid slice">
+        <rect width="300" height="225" fill="#cbd5c9"/>
+        <rect y="150" width="300" height="75" fill="#8a9a86"/>
+        <circle cx="150" cy="112" r="8" fill="none" stroke="magenta" stroke-width="1.5"/>
+        <line x1="150" y1="90" x2="150" y2="134" stroke="magenta" stroke-width="1"/>
+        <line x1="128" y1="112" x2="172" y2="112" stroke="magenta" stroke-width="1"/>
+      </svg>
+      <div class="actions-row">
+        <button>Sauvegarder</button>
+        <button>Masquer le HUD (test)</button>
+      </div>
+    </div>
+    <div class="capture-side">
+      <p class="status-line">Vise puis F9 pour capturer, F10 pour tester.</p>
+      <p class="status-line error">Erreur : le serveur ne répond pas (timeout 5s).</p>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

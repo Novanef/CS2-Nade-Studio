@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CS2 Nade Studio — Lineup multi-étapes</title>
+<style>
+:root {
+  --surface-0: #ffffff;
+  --surface-1: #f7f7f5;
+  --surface-2: #eeeeec;
+  --border: rgba(0,0,0,0.08);
+  --border-strong: rgba(0,0,0,0.25);
+  --border-accent: #93c5fd;
+  --bg-accent: #eff6ff;
+  --text-accent: #2563eb;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+  --radius: 8px;
+}
+body { font-family: system-ui, -apple-system, sans-serif; background: var(--surface-0); color: #111827; margin: 0; padding: 24px; }
+button, input, select { font-family: inherit; font-size: 14px; border: 0.5px solid var(--border); border-radius: var(--radius); padding: 6px 10px; background: var(--surface-1); color: inherit; }
+button { cursor: pointer; }
+</style>
+</head>
+<body>
+<h2 class="sr-only">Maquette d'un lineup en plusieurs étapes : une étape de déplacement où le repère d'arrêt peut être la position du joueur ou l'alignement de la visée, puis une étape de lancer.</h2>
+<style>
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.pill{font-size:13px;padding:6px 12px}
+</style>
+<div style="background:var(--surface-1);border:0.5px solid var(--border);border-radius:12px;padding:1rem 1.25rem;">
+
+  <div style="display:flex;gap:8px;margin-bottom:14px;">
+    <button id="tab-move" class="pill" onclick="showStep('move')">1 · Se déplacer</button>
+    <button id="tab-throw" class="pill" onclick="showStep('throw')">2 · Lancer</button>
+  </div>
+
+  <div id="step-move">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+      <span style="font-size:13px;color:var(--text-secondary);">Repère d'arrêt :</span>
+      <button id="ref-pos" class="pill" onclick="setRef('pos')">Position</button>
+      <button id="ref-aim" class="pill" onclick="setRef('aim')">Visée</button>
+      <span style="font-size:12px;color:var(--text-muted);">Marche · Course</span>
+    </div>
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;">
+      <div id="pos-card" style="background:var(--surface-2);border-radius:var(--radius);padding:12px;">
+        <p style="font-size:13px;color:var(--text-secondary);margin:0 0 4px;">Position</p>
+        <p id="pos-hint" style="font-size:12px;margin:0 0 8px;">Arrêtez-vous précisément ici</p>
+        <svg viewBox="0 0 200 160" width="100%" height="120">
+          <rect x="0" y="0" width="200" height="160" fill="var(--surface-1)" rx="6"/>
+          <rect x="20" y="15" width="70" height="90" fill="none" stroke="var(--border-strong)" stroke-width="1.5"/>
+          <rect x="100" y="60" width="80" height="60" fill="none" stroke="var(--border-strong)" stroke-width="1.5"/>
+          <circle cx="60" cy="130" r="4" fill="var(--text-secondary)"/>
+          <path d="M60 130 Q100 110 150 90" fill="none" stroke="var(--text-accent)" stroke-width="1.5" stroke-dasharray="4 3"/>
+          <circle cx="150" cy="90" r="7" fill="none" stroke="var(--text-accent)" stroke-width="2"/>
+          <circle cx="150" cy="90" r="3" fill="var(--text-accent)"/>
+        </svg>
+      </div>
+      <div id="aim-card" style="background:var(--surface-2);border-radius:var(--radius);padding:12px;">
+        <p style="font-size:13px;color:var(--text-secondary);margin:0 0 4px;">Visée</p>
+        <p id="aim-hint" style="font-size:12px;margin:0 0 8px;">Visée libre pendant le déplacement</p>
+        <svg viewBox="0 0 200 160" width="100%" height="120">
+          <rect x="0" y="0" width="200" height="160" fill="var(--surface-1)" rx="6"/>
+          <path d="M0 70 L200 45 L200 160 L0 160 Z" fill="var(--surface-0)"/>
+          <rect x="128" y="35" width="6" height="30" fill="var(--text-muted)"/>
+          <circle cx="131" cy="33" r="4" fill="var(--text-muted)"/>
+          <line x1="121" y1="45" x2="141" y2="45" stroke="var(--text-accent)" stroke-width="2"/>
+          <line x1="131" y1="35" x2="131" y2="55" stroke="var(--text-accent)" stroke-width="2"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div id="step-throw">
+    <p style="font-size:12px;color:var(--text-muted);margin:0 0 12px;">Position et visée comptent toutes les deux pour le lancer final</p>
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;">
+      <div style="background:var(--surface-2);border:2px solid var(--border-accent);border-radius:var(--radius);padding:12px;">
+        <p style="font-size:13px;color:var(--text-secondary);margin:0 0 8px;">Position</p>
+        <svg viewBox="0 0 200 160" width="100%" height="120">
+          <rect x="0" y="0" width="200" height="160" fill="var(--surface-1)" rx="6"/>
+          <rect x="100" y="60" width="80" height="60" fill="none" stroke="var(--border-strong)" stroke-width="1.5"/>
+          <circle cx="150" cy="90" r="6" fill="var(--text-accent)"/>
+          <line x1="150" y1="90" x2="150" y2="60" stroke="var(--text-accent)" stroke-width="2"/>
+        </svg>
+      </div>
+      <div style="background:var(--surface-2);border:2px solid var(--border-accent);border-radius:var(--radius);padding:12px;">
+        <p style="font-size:13px;color:var(--text-secondary);margin:0 0 8px;">Visée</p>
+        <svg viewBox="0 0 200 160" width="100%" height="120">
+          <rect x="0" y="0" width="200" height="160" fill="var(--surface-1)" rx="6"/>
+          <path d="M0 70 L200 45 L200 160 L0 160 Z" fill="var(--surface-0)"/>
+          <line x1="125" y1="55" x2="145" y2="55" stroke="var(--text-accent)" stroke-width="2"/>
+          <line x1="135" y1="45" x2="135" y2="65" stroke="var(--text-accent)" stroke-width="2"/>
+          <circle cx="135" cy="55" r="9" fill="none" stroke="var(--text-accent)" stroke-width="1" stroke-dasharray="2 2"/>
+        </svg>
+      </div>
+    </div>
+    <div style="background:var(--surface-2);border-radius:var(--radius);padding:10px 14px;margin-top:12px;display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:14px;">Palace smoke — étape finale</span>
+      <span style="background:var(--bg-accent);color:var(--text-accent);font-size:12px;padding:4px 12px;border-radius:var(--radius);">Jumpthrow</span>
+    </div>
+  </div>
+
+</div>
+<script>
+function paintTab(id, active){
+  const el=document.getElementById(id);
+  el.style.background = active ? 'var(--bg-accent)':'';
+  el.style.color = active ? 'var(--text-accent)':'';
+  el.style.borderColor = active ? 'var(--border-accent)':'';
+}
+function showStep(step){
+  document.getElementById('step-move').style.display = step==='move' ? 'block':'none';
+  document.getElementById('step-throw').style.display = step==='throw' ? 'block':'none';
+  paintTab('tab-move', step==='move');
+  paintTab('tab-throw', step==='throw');
+}
+function setRef(ref){
+  const posCard=document.getElementById('pos-card');
+  const aimCard=document.getElementById('aim-card');
+  const posHint=document.getElementById('pos-hint');
+  const aimHint=document.getElementById('aim-hint');
+  if(ref==='pos'){
+    posCard.style.border='2px solid var(--border-accent)'; posCard.style.opacity=1;
+    posHint.textContent='Arrêtez-vous précisément ici'; posHint.style.color='var(--text-accent)';
+    aimCard.style.border='0.5px solid var(--border)'; aimCard.style.opacity=0.55;
+    aimHint.textContent='Visée libre pendant le déplacement'; aimHint.style.color='var(--text-muted)';
+  } else {
+    aimCard.style.border='2px solid var(--border-accent)'; aimCard.style.opacity=1;
+    aimHint.textContent='Alignez-vous sur ce repère visuel'; aimHint.style.color='var(--text-accent)';
+    posCard.style.border='0.5px solid var(--border)'; posCard.style.opacity=0.55;
+    posHint.textContent='Zone approximative, la visée fait foi'; posHint.style.color='var(--text-muted)';
+  }
+  paintTab('ref-pos', ref==='pos');
+  paintTab('ref-aim', ref==='aim');
+}
+showStep('move');
+setRef('pos');
+</script>
+</body>
+</html>
