@@ -37,3 +37,7 @@ Desktop.ini
 # jeu de données par défaut pour tester l'app) ; app/data/user/ est l'état réel
 # de l'utilisateur, initialisé depuis seed/ au premier lancement (voir storage.py)
 app/data/user/
+
+# --- Claude Code (config locale/session, pas partagée) ---
+.claude/settings.json
+.claude/scheduled_tasks.lock
