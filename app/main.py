@@ -8,7 +8,9 @@ from __future__ import annotations
 import base64
 import ctypes
 import mimetypes
+import os
 import threading
+import time
 from pathlib import Path
 
 import keyboard
@@ -22,6 +24,24 @@ from core.models import Lineup
 from core.plugin_client import PluginUnavailableError
 
 APP_DIR = Path(__file__).resolve().parent
+REPO_ROOT = APP_DIR.parent
+
+
+def _load_env_file(path: Path) -> None:
+    """Charge un fichier .env minimal (KEY=VALUE par ligne, # pour les commentaires) dans
+    os.environ, sans dépendance externe (python-dotenv) pour un unique fichier à la racine
+    du repo — voir .env. N'écrase jamais une variable déjà présente dans l'environnement."""
+    if not path.is_file():
+        return
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, value = line.partition("=")
+        os.environ.setdefault(key.strip(), value.strip())
+
+
+_load_env_file(REPO_ROOT / ".env")
 
 capture_session = CaptureSession()
 main_window: webview.Window | None = None
@@ -431,13 +451,40 @@ def get_screen_size() -> tuple[int, int]:
     return user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
 
 
+_UI_WATCH_EXTENSIONS = {".html", ".js", ".css"}
+
+
+def _ui_file_mtimes(root: Path) -> dict[Path, float]:
+    return {p: p.stat().st_mtime for p in root.rglob("*") if p.suffix in _UI_WATCH_EXTENSIONS}
+
+
+def _watch_ui_and_reload(window: webview.Window, index_path: Path, poll_interval: float = 0.5) -> None:
+    """Recharge `window` dès qu'un fichier HTML/JS/CSS sous le dossier de `index_path`
+    est modifié — évite de relancer l'app à chaque changement d'UI en développement.
+    Activé uniquement si NADE_STUDIO_HOT_RELOAD=1 (voir main()) : un rechargement complet
+    réinitialise l'état JS de la fenêtre, ce qu'on ne veut jamais pendant une vraie
+    session de capture."""
+    root = index_path.parent
+    last_mtimes = _ui_file_mtimes(root)
+    while True:
+        time.sleep(poll_interval)
+        current_mtimes = _ui_file_mtimes(root)
+        if current_mtimes != last_mtimes:
+            last_mtimes = current_mtimes
+            try:
+                window.load_url(str(index_path))
+            except Exception:
+                pass
+
+
 def main() -> None:
     global main_window, overlay_window
 
     api = Api()
+    main_window_index = APP_DIR / "ui" / "main_window" / "index.html"
     main_window = webview.create_window(
         "CS2 Nade Studio",
-        str(APP_DIR / "ui" / "main_window" / "index.html"),
+        str(main_window_index),
         js_api=api,
         width=1000,
         height=720,
@@ -446,9 +493,10 @@ def main() -> None:
     screen_w, screen_h = get_screen_size()
     overlay_w, overlay_h = 240, 100
     margin = 24
+    overlay_window_index = APP_DIR / "ui" / "overlay" / "index.html"
     overlay_window = webview.create_window(
         "CS2 Nade Studio — Overlay",
-        str(APP_DIR / "ui" / "overlay" / "index.html"),
+        str(overlay_window_index),
         frameless=True,
         on_top=True,
         hidden=True,  # caché tant que _poll_overlay_visibility n'a pas confirmé une connexion —
@@ -465,11 +513,21 @@ def main() -> None:
     # configurations CS2 — F6 évite ce conflit.
     keyboard.add_hotkey("f6", on_test_hotkey)
 
+    def _start_background_threads() -> None:
+        threading.Thread(target=_poll_overlay_visibility, daemon=True).start()
+        if os.environ.get("NADE_STUDIO_HOT_RELOAD") == "1":
+            threading.Thread(
+                target=_watch_ui_and_reload, args=(main_window, main_window_index), daemon=True
+            ).start()
+            threading.Thread(
+                target=_watch_ui_and_reload, args=(overlay_window, overlay_window_index), daemon=True
+            ).start()
+
     # Démarré via func= plutôt qu'avant webview.start() : les fenêtres natives ne sont
     # créées qu'au démarrage de la boucle webview, appeler .show()/.hide() avant (même
     # depuis un thread séparé lancé trop tôt) lève WebViewException("Main window failed
     # to start").
-    webview.start(lambda: threading.Thread(target=_poll_overlay_visibility, daemon=True).start(), debug=False)
+    webview.start(_start_background_threads, debug=False)
 
 
 if __name__ == "__main__":
