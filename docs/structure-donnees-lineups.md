@@ -46,7 +46,7 @@ Ce découpage permet de représenter aussi bien un lineup simple (un seul waypoi
 | `referenceType` | enum `"position"` \| `"aim"` \| `"both"` | Quelle donnée fait foi pour valider ce point. `"both"` est réservé au waypoint de type `"throw"` |
 | `position` | `{ x, y, z: float }` | Coordonnées joueur (capturées via GSI ou saisies manuellement) |
 | `viewAngle` | `{ yaw, pitch: float }` | Direction de la visée |
-| `movement` | enum `Movement` | `"stand"`, `"walk"`, `"run"`, `"jump"` — état de déplacement requis à ce point |
+| `movement` | enum `Movement` | `"stand"`, `"walk"`, `"run"`, `"jump"`, `"runjump"` (avancer + sauter au lancer) — état de déplacement requis à ce point |
 | `clickType` | enum `ClickType` | `"left"`, `"right"`, `"middle"` — uniquement renseigné si `type = "throw"` |
 | `screenshotRef` | string (optionnel) | Capture d'écran de référence, utile surtout pour un `referenceType = "aim"` |
 | `description` | string (optionnel) | Instruction courte spécifique à ce point, ex. `"Alignez l'antenne avec le mur"` |
@@ -57,7 +57,7 @@ Ce découpage permet de représenter aussi bien un lineup simple (un seul waypoi
 ```
 Side          = "T" | "CT"
 GrenadeType   = "smoke" | "flash" | "molotov" | "he" | "decoy"
-Movement      = "stand" | "walk" | "run" | "jump"
+Movement      = "stand" | "walk" | "run" | "jump" | "runjump"
 ClickType     = "left" | "right" | "middle"
 ReferenceType = "position" | "aim" | "both"
 WaypointType  = "checkpoint" | "throw"

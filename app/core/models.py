@@ -12,7 +12,7 @@ from typing import Literal
 
 Side = Literal["T", "CT"]
 GrenadeType = Literal["smoke", "flash", "molotov", "he", "decoy"]
-Movement = Literal["stand", "walk", "run", "jump"]
+Movement = Literal["stand", "walk", "run", "jump", "runjump"]
 ClickType = Literal["left", "right", "middle"]
 ReferenceType = Literal["position", "aim", "both"]
 WaypointType = Literal["checkpoint", "throw"]
@@ -21,7 +21,7 @@ LineupSource = Literal["manual", "plugin_capture", "mixed"]
 
 SIDES: tuple[Side, ...] = ("T", "CT")
 GRENADE_TYPES: tuple[GrenadeType, ...] = ("smoke", "flash", "molotov", "he", "decoy")
-MOVEMENTS: tuple[Movement, ...] = ("stand", "walk", "run", "jump")
+MOVEMENTS: tuple[Movement, ...] = ("stand", "walk", "run", "jump", "runjump")
 CLICK_TYPES: tuple[ClickType, ...] = ("left", "right", "middle")
 REFERENCE_TYPES: tuple[ReferenceType, ...] = ("position", "aim", "both")
 WAYPOINT_TYPES: tuple[WaypointType, ...] = ("checkpoint", "throw")
@@ -235,6 +235,7 @@ _MOVEMENT_LABELS: dict[Movement, str] = {
     "walk": "",
     "run": "Run",
     "jump": "Jump",
+    "runjump": "Run+Jump",
 }
 
 
