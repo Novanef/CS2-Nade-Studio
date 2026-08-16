@@ -1,0 +1,288 @@
+[
+  {
+    "id": "2b39eaa2-851f-4f40-a915-ed943fc7ff94",
+    "mapId": "mirage",
+    "side": "T",
+    "index": 1,
+    "position": {
+      "x": 1216,
+      "y": -115,
+      "z": -163.96875
+    }
+  },
+  {
+    "id": "e853dc18-c8b5-4d75-9d58-9e8103276288",
+    "mapId": "mirage",
+    "side": "T",
+    "index": 2,
+    "position": {
+      "x": 1136,
+      "y": -256,
+      "z": -164.83656
+    }
+  },
+  {
+    "id": "ccd0eca8-822f-482b-80dc-d14da6b88c80",
+    "mapId": "mirage",
+    "side": "T",
+    "index": 3,
+    "position": {
+      "x": 1136,
+      "y": -160,
+      "z": -164.43051
+    }
+  },
+  {
+    "id": "158efc5e-f077-4462-a183-898476a5f043",
+    "mapId": "mirage",
+    "side": "T",
+    "index": 4,
+    "position": {
+      "x": 1296,
+      "y": -352,
+      "z": -167.96875
+    }
+  },
+  {
+    "id": "f1e815e9-627f-4d06-8854-75b419afc6bd",
+    "mapId": "mirage",
+    "side": "T",
+    "index": 5,
+    "position": {
+      "x": 1136,
+      "y": 32,
+      "z": -164.78847
+    }
+  },
+  {
+    "id": "efb2e12a-3409-4e00-952e-62b8c029771a",
+    "mapId": "mirage",
+    "side": "T",
+    "index": 6,
+    "position": {
+      "x": 1216,
+      "y": -16,
+      "z": -163.96875
+    }
+  },
+  {
+    "id": "db13389d-dc74-4f24-8b85-76ac72b90afa",
+    "mapId": "mirage",
+    "side": "T",
+    "index": 7,
+    "position": {
+      "x": 1216,
+      "y": -211,
+      "z": -163.96875
+    }
+  },
+  {
+    "id": "fa2619ab-e11b-4766-b1e0-8a90908e0a97",
+    "mapId": "mirage",
+    "side": "T",
+    "index": 8,
+    "position": {
+      "x": 1136,
+      "y": -64,
+      "z": -164.49913
+    }
+  },
+  {
+    "id": "05450d3b-9d67-40d5-bc5b-bb7326357e80",
+    "mapId": "mirage",
+    "side": "T",
+    "index": 9,
+    "position": {
+      "x": 1216,
+      "y": -307,
+      "z": -164.8148
+    }
+  },
+  {
+    "id": "11ac8a42-2d04-4a85-9d1d-b779d15f0009",
+    "mapId": "mirage",
+    "side": "T",
+    "index": 10,
+    "position": {
+      "x": 1296,
+      "y": 32,
+      "z": -167.96875
+    }
+  },
+  {
+    "id": "76c081bf-b9b4-4fbc-980d-be8793427d2c",
+    "mapId": "mirage",
+    "side": "CT",
+    "index": 1,
+    "position": {
+      "x": -1656,
+      "y": -1800,
+      "z": -267.20642
+    }
+  },
+  {
+    "id": "44f67a80-992b-4a40-8016-13847e2d071f",
+    "mapId": "mirage",
+    "side": "CT",
+    "index": 2,
+    "position": {
+      "x": -1776,
+      "y": -1800,
+      "z": -263.96875
+    }
+  },
+  {
+    "id": "07bd50ea-cde6-4f3b-aedd-b5793180e89a",
+    "mapId": "mirage",
+    "side": "CT",
+    "index": 3,
+    "position": {
+      "x": -1720,
+      "y": -1896,
+      "z": -267.60226
+    }
+  },
+  {
+    "id": "ba1f278b-4faf-412a-8dc3-340843906db9",
+    "mapId": "mirage",
+    "side": "CT",
+    "index": 4,
+    "position": {
+      "x": -1776,
+      "y": -1976,
+      "z": -263.96875
+    }
+  },
+  {
+    "id": "cd3dca39-014f-47a3-8f0a-1eefc5f15f60",
+    "mapId": "mirage",
+    "side": "CT",
+    "index": 5,
+    "position": {
+      "x": -1656,
+      "y": -1976,
+      "z": -267.4583
+    }
+  },
+  {
+    "id": "9c0f2bd5-f46f-4cd7-96e3-3e5fd4bb1ac5",
+    "mapId": "inferno",
+    "side": "T",
+    "index": 1,
+    "position": {
+      "x": -1675.62,
+      "y": 351.695,
+      "z": -63.96875
+    }
+  },
+  {
+    "id": "23bd4dae-c6be-44d1-aab8-e571747101e1",
+    "mapId": "inferno",
+    "side": "T",
+    "index": 2,
+    "position": {
+      "x": -1657.23,
+      "y": 419.577,
+      "z": -63.96875
+    }
+  },
+  {
+    "id": "f9449925-9a0d-4fdd-b6a1-27bff4f15a63",
+    "mapId": "inferno",
+    "side": "T",
+    "index": 3,
+    "position": {
+      "x": -1520.06,
+      "y": 430.891,
+      "z": -63.96875
+    }
+  },
+  {
+    "id": "36c02b6c-3fbf-47f7-b111-149b5805dd71",
+    "mapId": "inferno",
+    "side": "T",
+    "index": 4,
+    "position": {
+      "x": -1586.52,
+      "y": 440.79,
+      "z": -63.96875
+    }
+  },
+  {
+    "id": "cfb47515-9f08-423a-9391-87421b49982b",
+    "mapId": "inferno",
+    "side": "T",
+    "index": 5,
+    "position": {
+      "x": -1662.18,
+      "y": 288.762,
+      "z": -63.96875
+    }
+  },
+  {
+    "id": "4bc1782a-3d06-41a6-9267-79c1acfb363e",
+    "mapId": "inferno",
+    "side": "CT",
+    "index": 1,
+    "position": {
+      "x": 2353,
+      "y": 1977,
+      "z": 135.51888
+    }
+  },
+  {
+    "id": "b7eddd74-b9cf-4ad1-9a1b-963f5bd6cbd6",
+    "mapId": "inferno",
+    "side": "CT",
+    "index": 2,
+    "position": {
+      "x": 2397,
+      "y": 2079,
+      "z": 132.76755
+    }
+  },
+  {
+    "id": "a8b8f48f-ff6d-4998-9c0b-62d8e1a04e24",
+    "mapId": "inferno",
+    "side": "CT",
+    "index": 3,
+    "position": {
+      "x": 2493,
+      "y": 2090,
+      "z": 132.55138
+    }
+  },
+  {
+    "id": "948e7bfb-8408-40cf-b614-b5d36e271d06",
+    "mapId": "inferno",
+    "side": "CT",
+    "index": 4,
+    "position": {
+      "x": 2472.3499,
+      "y": 2005.97,
+      "z": 134.50505
+    }
+  },
+  {
+    "id": "bf1b80f7-e284-4756-bc5a-c6a31f5abfa7",
+    "mapId": "inferno",
+    "side": "CT",
+    "index": 5,
+    "position": {
+      "x": 2292.06,
+      "y": 2027.69,
+      "z": 135.95695
+    }
+  },
+  {
+    "id": "4c1cfd82-551f-449e-95bd-fcd56b6c3b62",
+    "mapId": "inferno",
+    "side": "CT",
+    "index": 6,
+    "position": {
+      "x": 2456.83,
+      "y": 2153.16,
+      "z": 132.07718
+    }
+  }
+]

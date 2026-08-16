@@ -1,0 +1,82 @@
+[
+  {
+    "id": "mirage",
+    "displayName": "Mirage",
+    "radarImageRef": "assets/radar/mirage.png",
+    "radarPosX": -3230,
+    "radarPosY": 1713,
+    "radarScale": 5.0
+  },
+  {
+    "id": "ancient",
+    "displayName": "Ancient",
+    "radarImageRef": "assets/radar/ancient.png",
+    "radarPosX": -2953,
+    "radarPosY": 2164,
+    "radarScale": 5.0
+  },
+  {
+    "id": "inferno",
+    "displayName": "Inferno",
+    "radarImageRef": "assets/radar/inferno.png",
+    "radarPosX": -2087,
+    "radarPosY": 3870,
+    "radarScale": 4.9
+  },
+  {
+    "id": "dust2",
+    "displayName": "Dust2",
+    "radarImageRef": "assets/radar/dust2.png",
+    "radarPosX": -2476,
+    "radarPosY": 3239,
+    "radarScale": 4.4
+  },
+  {
+    "id": "nuke",
+    "displayName": "Nuke",
+    "radarImageRef": "assets/radar/nuke.png",
+    "radarPosX": -3453,
+    "radarPosY": 2887,
+    "radarScale": 7.0
+  },
+  {
+    "id": "anubis",
+    "displayName": "Anubis",
+    "radarImageRef": "assets/radar/anubis.png",
+    "radarPosX": -2796,
+    "radarPosY": 3328,
+    "radarScale": 5.22
+  },
+  {
+    "id": "overpass",
+    "displayName": "Overpass",
+    "radarImageRef": "assets/radar/overpass.png",
+    "radarPosX": -4831,
+    "radarPosY": 1781,
+    "radarScale": 5.2
+  },
+  {
+    "id": "train",
+    "displayName": "Train",
+    "radarImageRef": "assets/radar/train.png",
+    "radarPosX": -2308,
+    "radarPosY": 2078,
+    "radarScale": 4.082077
+  },
+  {
+    "id": "vertigo",
+    "displayName": "Vertigo",
+    "radarImageRef": "assets/radar/vertigo.png",
+    "radarPosX": -3168,
+    "radarPosY": 1762,
+    "radarScale": 4.0
+  },
+  {
+    "id": "cache",
+    "displayName": "Cache",
+    "radarImageRef": "assets/radar/cache.png",
+    "radarPosX": -2000,
+    "radarPosY": 3250,
+    "radarScale": 5.5
+  }
+]

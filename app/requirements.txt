@@ -1,0 +1,6 @@
+pywebview
+mss
+keyboard
+requests
+psutil
+Pillow

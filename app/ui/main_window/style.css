@@ -1,0 +1,528 @@
+:root {
+  --surface-0: #ffffff;
+  --surface-1: #f7f7f5;
+  --surface-2: #eeeeec;
+  --border: rgba(0, 0, 0, 0.08);
+  --border-strong: rgba(0, 0, 0, 0.25);
+  --border-accent: #93c5fd;
+  --bg-accent: #eff6ff;
+  --text-accent: #2563eb;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+  --radius: 8px;
+}
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  background: var(--surface-0);
+  color: #111827;
+  margin: 0;
+  padding: 24px;
+  height: 100vh;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  /* La fenêtre ne doit jamais dépasser l'écran ni faire apparaître de scroll —
+     tout excédent (ex. un screenshot dans un flex-item mal contraint) doit se
+     faire absorber par la mise en page interne (min-height:0 en cascade), pas
+     par un scroll de page. */
+  overflow: hidden;
+}
+
+button, input, select {
+  font-family: inherit;
+  font-size: 13px;
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 4px 8px;
+  background: var(--surface-1);
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button.pill {
+  font-size: 13px;
+  padding: 6px 12px;
+}
+
+button.pill.active {
+  background: var(--bg-accent);
+  color: var(--text-accent);
+  border-color: var(--border-accent);
+}
+
+button[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.panel {
+  background: var(--surface-1);
+  border: 0.5px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+}
+
+/* Le screenshot sert de fond plein cadre à la vue "Bibliothèque" (voir .browse-hero
+   plus bas) — les contrôles qui flottent par-dessus (recherche, filtres, barre de
+   détail, vignettes) passent en semi-transparent avec un léger flou pour rester
+   lisibles sur n'importe quelle photo, sans la masquer complètement. Portée aux
+   seuls descendants de .browse-foreground : la vue de création garde des contrôles
+   pleinement opaques sur son propre fond de panneau. */
+.browse-foreground button,
+.browse-foreground input,
+.browse-foreground select {
+  background: rgba(247, 247, 245, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.browse-foreground .detail-bar,
+.browse-foreground .chip {
+  background: rgba(238, 238, 236, 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.browse-foreground .detail-bar {
+  padding: 8px 12px;
+  margin-bottom: 0;
+}
+
+#stripLabel {
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+}
+
+.card {
+  background: var(--surface-2);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px;
+}
+
+.radar-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--surface-1);
+  cursor: crosshair;
+}
+
+/* Emplacement flexible du radar dans #view-create : la taille en pixels de
+   .radar-wrap à l'intérieur est imposée par fitCreateRadarSquares() (main.js),
+   qui mesure l'espace réellement laissé par le reste du formulaire une fois la
+   cascade flex/min-height:0 posée ci-dessous — pas de vh ni de valeur devinée,
+   ça s'adapte à n'importe quelle résolution/taille de fenêtre. */
+.radar-slot {
+  flex: 1;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+html {
+  height: 100%;
+}
+
+#view-browse {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* Filet de sécurité si le formulaire dépasse malgré le plafond de .screenshot-preview
+   (fenêtre réduite, DPI élevé...) : scroll interne au panneau, jamais un scroll de
+   page complet (voir commentaire sur body plus haut). */
+#view-create {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.capture-card {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+#instantSpawnPanel {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Le screenshot est l'information la plus importante de cette vue : il sert de
+   fond plein cadre derrière toute l'interface (object-fit:cover, pas de bande
+   vide), plutôt que de partager l'espace avec elle. .browse-foreground flotte
+   par-dessus (ancré en haut : recherche/filtres ; en bas : détail + vignettes),
+   avec un espace vide au milieu (.browse-spacer) qui laisse voir la photo.
+   Un seul des deux fonds (#browseMediaStage / #instantMediaStage) est visible
+   à la fois — voir renderLineups() dans main.js. */
+.browse-hero {
+  position: relative;
+  overflow: hidden;
+}
+
+.media-stage {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  background: var(--surface-1);
+}
+
+.browse-foreground {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.browse-spacer {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.detail-pill-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.stage-media {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.stage-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 16px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+/* En haut, pas en bas — les incrustations radar/zoom occupent déjà les deux coins
+   bas (voir .inset-radar/.inset-zoom), une légende en bas les chevaucherait. */
+.stage-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 2;
+  margin: 0;
+  padding: 10px 14px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 13px;
+}
+
+.stage-label {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: var(--radius);
+}
+
+.inset-panel {
+  position: absolute;
+  z-index: 2;
+  border-radius: 8px;
+  overflow: hidden;
+  /* Fond sombre semi-transparent plutôt que le blanc cassé habituel des cartes —
+     les PNG radar sont en RGBA avec les zones hors carte transparentes (vérifié),
+     un fond clair y créerait un carré blanc qui jure sur la photo en dessous. */
+  background: rgba(0, 0, 0, 0.45);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.inset-radar {
+  bottom: 14px;
+  left: 14px;
+  width: 190px;
+}
+
+.inset-radar .radar-wrap {
+  max-width: none;
+  margin: 0;
+  background: transparent;
+}
+
+.inset-zoom {
+  bottom: 14px;
+  right: 14px;
+  width: 300px;
+  aspect-ratio: 4 / 3;
+}
+
+.inset-zoom img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.radar-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.radar-marker {
+  position: absolute;
+  box-sizing: border-box;
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  border-radius: 50%;
+  background: var(--text-accent);
+  border: 2px solid var(--surface-0);
+  box-shadow: 0 0 0 1px var(--border-strong);
+  pointer-events: none;
+}
+
+.card-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 0 0 8px;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.pill-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.detail-bar {
+  background: var(--surface-2);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.badge {
+  background: var(--bg-accent);
+  color: var(--text-accent);
+  font-size: 12px;
+  padding: 4px 12px;
+  border-radius: var(--radius);
+}
+
+.strip {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+}
+
+.chip {
+  min-width: 90px;
+  background: var(--surface-2);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.chip.active {
+  border: 2px solid var(--border-accent);
+}
+
+.chip .muted {
+  color: var(--text-secondary);
+}
+
+/* Label à côté du champ plutôt qu'au-dessus : évite qu'une rangée de 3 champs
+   (label + champ empilés) prenne le double de hauteur nécessaire. */
+.form-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.form-row label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  flex: none;
+  white-space: nowrap;
+}
+
+.form-row select,
+.form-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Rangée de champs empaquetés à leur taille de contenu (ex. le select "Camp"
+   n'a besoin de place que pour "CT"/"T") plutôt qu'étalés sur des colonnes de
+   grille égales — évite qu'un select à 2 lettres occupe un tiers de la largeur
+   de la fenêtre. */
+.field-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+  margin-bottom: 6px;
+}
+
+.field-row .form-row {
+  flex: none;
+}
+
+.field-row .form-row select {
+  flex: none;
+  width: auto;
+  min-width: 0;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.status-line {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 5px 0;
+}
+
+.status-line.error {
+  color: #dc2626;
+}
+
+/* Le screenshot occupe tout .capture-media (flex:1 en cascade depuis le card,
+   voir .capture-layout ci-dessous) plutôt qu'un max-height deviné — il utilise
+   ainsi toute la hauteur ET la largeur laissées libres par .capture-side. */
+.screenshot-preview {
+  display: block;
+  flex: 1;
+  min-height: 60px;
+  width: 100%;
+  object-fit: contain;
+  border-radius: var(--radius);
+}
+
+/* Card "Capture en jeu" : média (screenshot / radar instant) à gauche, textes
+   de statut + boutons dans une colonne étroite à droite plutôt qu'empilés —
+   utilise la largeur du card au lieu de la laisser vide sur les côtés. */
+.capture-layout {
+  display: flex;
+  gap: 10px;
+  flex: 1;
+  min-height: 0;
+}
+
+.capture-media {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.capture-side {
+  width: 230px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.actions-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* Marqueurs de spawn — radar zoomé sur le cluster (picker en création, vue groupée
+   en bibliothèque). Positionnés en JS via left/top % (voir computeZoomFrame, main.js). */
+/* Petits points par défaut (pas de numéro visible) — avec 10 spawns dans une
+   incrustation de moins de 200px, des cercles numérotés côte à côte se marchaient
+   dessus. Seul le marqueur sélectionné grossit et affiche son numéro. */
+.instant-marker {
+  position: absolute;
+  box-sizing: border-box;
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  border-radius: 50%;
+  background: var(--surface-0);
+  border: 2px solid var(--text-accent);
+  color: transparent;
+  font-size: 0;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.instant-marker.done {
+  background: var(--text-accent);
+}
+
+.instant-marker.selected {
+  z-index: 3;
+  width: 24px;
+  height: 24px;
+  margin: -12px 0 0 -12px;
+  background: var(--text-accent);
+  color: var(--surface-0);
+  font-size: 12px;
+  box-shadow: 0 0 0 3px var(--bg-accent);
+}
+
+.instant-marker.static {
+  cursor: default;
+}
+

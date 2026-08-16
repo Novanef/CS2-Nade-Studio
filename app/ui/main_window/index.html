@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CS2 Nade Studio</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Vue "Bibliothèque" — adaptée de docs/maquette/1-app-principal.html, rendue data-driven.
+     Le screenshot sert de fond plein écran (position:absolute, voir .media-stage dans
+     .browse-hero) ; tout le reste (.browse-foreground) flotte par-dessus, en semi-transparent,
+     ancré en haut (recherche/filtres) et en bas (détail + vignettes) avec un espace vide au
+     milieu qui laisse voir la photo. -->
+<section id="view-browse" class="panel browse-hero">
+
+  <div class="media-stage" id="browseMediaStage">
+    <img class="stage-media hidden" id="detailScreenshotImg" alt="Screenshot du point de départ">
+    <svg class="stage-media" id="detailScreenshotFallback" viewBox="0 0 200 160" preserveAspectRatio="xMidYMid slice">
+      <rect x="0" y="0" width="200" height="160" fill="var(--surface-1)"/>
+      <path d="M0 70 L200 45 L200 160 L0 160 Z" fill="var(--surface-0)"/>
+      <line x1="125" y1="55" x2="145" y2="55" stroke="var(--text-accent)" stroke-width="2"/>
+      <line x1="135" y1="45" x2="135" y2="65" stroke="var(--text-accent)" stroke-width="2"/>
+      <circle cx="135" cy="55" r="9" fill="none" stroke="var(--text-accent)" stroke-width="1" stroke-dasharray="2 2"/>
+    </svg>
+    <p class="stage-caption hidden" id="detailScreenshotCaption"></p>
+  </div>
+
+  <div class="media-stage hidden" id="instantMediaStage">
+    <span class="stage-label hidden" id="instantShotLabel"></span>
+    <img class="stage-media hidden" id="instantGroupShotImg" alt="Screenshot du spawn sélectionné">
+    <div class="stage-empty hidden" id="instantGroupShotEmpty">Sélectionne un spawn ci-dessous.</div>
+  </div>
+
+  <div class="browse-foreground">
+    <div class="toolbar">
+      <select id="mapSelect"></select>
+      <div style="display:flex;gap:4px;">
+        <button class="pill" id="side-CT" onclick="setSide('CT')">CT</button>
+        <button class="pill" id="side-T" onclick="setSide('T')">T</button>
+      </div>
+      <input type="text" id="searchInput" placeholder="Rechercher un spot, ex: Palace smoke" style="flex:1;min-width:160px;" oninput="onSearchInput()">
+      <button class="pill" onclick="openCreateView()">+ Nouveau lineup</button>
+    </div>
+
+    <div class="pill-row" id="categoryPills"></div>
+
+    <!-- Titre (haut-gauche) + actions (haut-droite) : pastilles compactes plutôt
+         qu'une grande barre pleine largeur, pour laisser voir la photo entre les deux. -->
+    <div class="detail-pill-row">
+      <div class="detail-bar" id="lineupDetail">
+        <div style="min-width:0;">
+          <p style="font-size:14px;font-weight:500;margin:0;" id="detailSpotName">—</p>
+          <input type="text" class="hidden" id="detailSpotNameInput" style="font-size:14px;font-weight:500;width:100%;margin:0;">
+          <p style="font-size:12px;color:var(--text-secondary);margin:2px 0 0;" id="detailNotes"></p>
+          <input type="text" class="hidden" id="detailNotesInput" style="font-size:12px;width:100%;margin:2px 0 0;">
+        </div>
+        <span class="badge hidden" id="detailThrowLabel"></span>
+      </div>
+
+      <div class="detail-bar hidden" id="instantGroupBar">
+        <div>
+          <p style="font-size:14px;font-weight:500;margin:0;" id="instantGroupTitle">—</p>
+          <p class="status-line" id="instantGroupSubtitle" style="margin:2px 0 0;"></p>
+        </div>
+        <span class="badge">Instant</span>
+      </div>
+
+      <div class="detail-bar" id="detailActions" style="gap:8px;">
+        <button class="pill" id="btnToggleFavorite" onclick="toggleFavorite()">☆</button>
+        <button class="pill" id="btnEditLineup" onclick="startEditLineup()">Éditer</button>
+        <button class="pill hidden" id="btnSaveEditLineup" onclick="saveEditLineup()">Enregistrer</button>
+        <button class="pill hidden" id="btnCancelEditLineup" onclick="cancelEditLineup()">Annuler</button>
+        <button class="pill" id="btnDeleteLineup" onclick="deleteLineup()">Supprimer</button>
+        <button class="pill hidden" id="btnOpenSpawnLineup" onclick="openSelectedSpawnLineup()">Éditer ce lineup</button>
+      </div>
+    </div>
+
+    <!-- Zone vide qui laisse voir la photo — les incrustations radar/zoom sont
+         ancrées à SES coins bas (position:relative ici), pas à ceux de toute la
+         fenêtre : elles ne peuvent donc jamais chevaucher le bandeau du bas
+         ("Autres lineups"), qui est un frère en flux normal après cette zone. -->
+    <div class="browse-spacer">
+      <div class="inset-panel inset-radar hidden" id="radarInset">
+        <div class="radar-wrap" id="radarWrap">
+          <img class="radar-img" id="radarImg" alt="Radar de la carte">
+          <div class="radar-marker hidden" id="radarMarker"></div>
+        </div>
+      </div>
+      <div class="inset-panel inset-zoom hidden" id="zoomInset">
+        <img id="detailZoomImg" alt="Zoom autour du viseur">
+      </div>
+      <div class="inset-panel inset-radar hidden" id="instantGroupRadarInset">
+        <div class="radar-wrap" id="instantGroupRadarWrap">
+          <img class="radar-img" id="instantGroupRadarImg" alt="Radar de la carte">
+        </div>
+      </div>
+      <div class="inset-panel inset-zoom hidden" id="instantGroupZoomInset">
+        <img id="instantGroupZoomImg" alt="Zoom du spawn sélectionné">
+      </div>
+    </div>
+
+    <p class="card-label" id="stripLabel">Autres lineups</p>
+    <div class="strip" id="lineupStrip"></div>
+  </div>
+
+</section>
+
+<!-- Vue "Nouveau lineup" : formulaire + capture plugin + saisie manuelle -->
+<section id="view-create" class="panel hidden">
+  <div class="toolbar">
+    <p style="font-size:15px;font-weight:500;margin:0;">Nouveau lineup</p>
+    <button class="pill" style="margin-left:auto;" onclick="closeCreateView()">Annuler</button>
+  </div>
+
+  <div class="field-row">
+    <div class="form-row">
+      <label>Carte</label>
+      <select id="form-mapId"></select>
+    </div>
+    <div class="form-row">
+      <label>Camp</label>
+      <select id="form-side">
+        <option value="CT">CT</option>
+        <option value="T">T</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label>Type de grenade</label>
+      <select id="form-grenadeType">
+        <option value="smoke">Smoke</option>
+        <option value="flash">Flash</option>
+        <option value="molotov">Molotov</option>
+        <option value="he">HE</option>
+        <option value="decoy">Decoy</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label>Déplacement au lancer</label>
+      <select id="form-movement">
+        <option value="stand">Stand</option>
+        <option value="walk">Walk</option>
+        <option value="run">Run</option>
+        <option value="jump">Jump</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label>Clic</label>
+      <select id="form-clickType">
+        <option value="left">Gauche</option>
+        <option value="right">Droit</option>
+        <option value="middle">Milieu</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label>Catégorie</label>
+      <select id="form-category">
+        <option value="standard">Standard</option>
+        <option value="instant">Instant (spawn)</option>
+      </select>
+    </div>
+  </div>
+  <div class="field-row">
+    <div class="form-row" style="flex:1;min-width:220px;">
+      <label>Nom du spot</label>
+      <input type="text" id="form-spotName" placeholder="ex: Palace smoke">
+    </div>
+  </div>
+  <div class="form-row">
+    <label>Notes</label>
+    <input type="text" id="form-notes" placeholder="Instructions générales">
+  </div>
+
+  <!-- Capture via plugin -->
+  <div class="card capture-card">
+    <p class="card-label">Capture en jeu (plugin)</p>
+    <div class="capture-layout">
+      <div class="capture-media">
+        <div class="hidden" id="instantSpawnPanel">
+          <p class="card-label">Spawn (instant smoke)</p>
+          <div class="radar-slot">
+            <div class="radar-wrap" id="instantPickerWrap">
+              <img class="radar-img" id="instantPickerImg" alt="Radar de la carte">
+            </div>
+          </div>
+        </div>
+        <img class="screenshot-preview hidden" id="captureScreenshotImg" alt="Screenshot capturé">
+        <div class="actions-row">
+          <button id="btnSaveCapture" onclick="saveCapture()" disabled>Sauvegarder</button>
+          <button id="btnToggleHud" onclick="toggleHud()">Masquer le HUD (test)</button>
+        </div>
+      </div>
+      <div class="capture-side">
+        <p class="status-line" id="captureStatusLine">Vise puis F9 pour capturer, F10 pour tester.</p>
+        <p class="status-line hidden" id="instantPickerStatusLine">Sélectionnez un spawn puis téléportez-vous.</p>
+        <div class="actions-row hidden" id="teleportActionsRow">
+          <button id="btnTeleportSpawn" onclick="teleportToSelectedSpawn()" disabled>Téléporter à ce spawn</button>
+        </div>
+        <p class="status-line hidden" id="hudToggleStatusLine"></p>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<script src="main.js"></script>
+</body>
+</html>
