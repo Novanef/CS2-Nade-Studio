@@ -454,6 +454,14 @@ async function renderInstantShotPreview(generation) {
     label.classList.add("hidden");
   }
 
+  const throwLabel = document.getElementById("instantThrowLabel");
+  if (entry?.lineup?.throwLabel) {
+    throwLabel.textContent = entry.lineup.throwLabel;
+    throwLabel.classList.remove("hidden");
+  } else {
+    throwLabel.classList.add("hidden");
+  }
+
   const wp = entry?.lineup ? getFirstWaypoint(entry.lineup) : null;
   const [dataUrl, zoomUrl] = await Promise.all([
     wp?.screenshotRef ? api().get_screenshot_detail_data_url(wp.screenshotRef) : null,
