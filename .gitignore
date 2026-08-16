@@ -1,0 +1,39 @@
+# --- Python (app/) ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+.eggs/
+.venv/
+venv/
+env/
+*.log
+
+# --- .NET / C# (plugin/) ---
+bin/
+obj/
+*.user
+*.suo
+
+# --- Éditeurs / IDE ---
+.vs/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+
+# --- OS ---
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# --- Divers ---
+*.tmp
+*.bak
+
+# --- Données utilisateur (app/data) ---
+# app/data/maps.json et app/data/seed/ restent versionnés (référence partagée /
+# jeu de données par défaut pour tester l'app) ; app/data/user/ est l'état réel
+# de l'utilisateur, initialisé depuis seed/ au premier lancement (voir storage.py)
+app/data/user/
