@@ -762,12 +762,27 @@ async function closeCreateView() {
   await refreshLineups();
 }
 
+// Le bouton "Sauvegarder" ne doit s'activer que si un waypoint a été capturé (F9)
+// ET qu'un nom de spot est renseigné (requis par save_capture — voir main.py) —
+// sans quoi le lineup se sauvegarde avec spotName vide, ce qui casse le regroupement
+// par spot (bibliothèque standard) et le marquage "spawn capturé" (instant smoke).
+let captureHasWaypoint = false;
+
+function updateSaveButtonState() {
+  const spotName = document.getElementById("form-spotName").value.trim();
+  document.getElementById("btnSaveCapture").disabled = !spotName || !captureHasWaypoint;
+}
+
 // Arme la capture (F9) avec les valeurs actuelles du formulaire — pas de bouton
 // "Démarrer" : aucune info supplémentaire n'est nécessaire pour armer, donc c'est
 // fait automatiquement à l'ouverture de la vue et à chaque changement de champ
 // pertinent (voir les écouteurs "change"/"input" dans initInner).
 async function armCapture() {
   const category = document.getElementById("form-category").value;
+  // start_capture crée un nouveau brouillon (sans waypoint) à chaque appel — un champ
+  // modifié après une capture F9 invalide donc ce waypoint côté serveur, il faut
+  // recapturer (voir CaptureSession.start dans capture.py).
+  captureHasWaypoint = false;
   await api().start_capture(
     document.getElementById("form-mapId").value,
     document.getElementById("form-side").value,
@@ -779,6 +794,7 @@ async function armCapture() {
     category,
     category === "instant" ? instantSelectedSpawnId : null
   );
+  updateSaveButtonState();
   document.getElementById("captureStatusLine").textContent = "Prêt — vise puis appuie sur F9 en jeu pour capturer.";
 }
 
@@ -787,9 +803,12 @@ async function onCaptureUpdated() {
   const draft = await api().get_capture_draft();
   if (!draft) return;
   if (draft.waypoint) {
-    document.getElementById("captureStatusLine").textContent =
-      `Capturé : x=${draft.waypoint.position.x.toFixed(1)} y=${draft.waypoint.position.y.toFixed(1)} z=${draft.waypoint.position.z.toFixed(1)} — F6 pour tester.`;
-    document.getElementById("btnSaveCapture").disabled = false;
+    captureHasWaypoint = true;
+    const spotName = document.getElementById("form-spotName").value.trim();
+    document.getElementById("captureStatusLine").textContent = spotName
+      ? `Capturé : x=${draft.waypoint.position.x.toFixed(1)} y=${draft.waypoint.position.y.toFixed(1)} z=${draft.waypoint.position.z.toFixed(1)} — F6 pour tester.`
+      : `Capturé, mais le nom du spot est requis avant de sauvegarder.`;
+    updateSaveButtonState();
     await updateCaptureScreenshot(draft.waypoint.screenshotRef);
   }
 }

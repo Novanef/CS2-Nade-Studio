@@ -299,6 +299,8 @@ class Api:
     def save_capture(self) -> dict:
         if capture_session.draft is None or capture_session.draft.waypoint is None:
             return {"status": "error", "message": "Aucun waypoint capturé à sauvegarder."}
+        if not capture_session.draft.spotName.strip():
+            return {"status": "error", "message": "Le nom du spot est requis."}
 
         lineup_dict = new_lineup_dict(capture_session.draft, source="plugin_capture")
         storage.add_lineup(Lineup.from_dict(lineup_dict))
