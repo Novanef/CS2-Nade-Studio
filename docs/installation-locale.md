@@ -2,6 +2,20 @@
 
 Complète les autres documents du projet. Quatre étapes : le serveur dédié, Metamod:Source (la couche qui rend les plugins possibles), CounterStrikeSharp (le framework C#), puis votre plugin.
 
+## Installation automatisée (recommandé)
+
+`scripts/setup-server.ps1` encode les quatre étapes ci-dessous (et tous les pièges déjà rencontrés — chemin SteamCMD absolu, hook Metamod dans `gameinfo.gi`, `.vdf` CounterStrikeSharp mal placé, `sv_cheats`/practice) dans un script PowerShell idempotent :
+
+```powershell
+.\scripts\setup-server.ps1 -InstallDir D:\Documents\Github\cs2server `
+    -SteamCmdExe C:\steamcmd\steamcmd.exe `
+    -MetamodZip C:\downloads\mmsource-2.x-windows.zip `
+    -CounterStrikeSharpZip C:\downloads\counterstrikesharp-with-runtime-windows.zip `
+    -PluginBuildDir D:\Documents\Github\CS2-Nade-Studio\plugin\LineupCapturePlugin\bin\Release\net10.0
+```
+
+Il ne télécharge pas Metamod/CounterStrikeSharp lui-même (leurs URLs de release changent de version en version) — préparer les archives `.zip` en amont. Peut être relancé sans risque après une mise à jour CS2 qui casse `gameinfo.gi` — c'est d'ailleurs l'usage prévu en cas de blocage post-update. Les étapes manuelles ci-dessous restent le fallback/debug si le script échoue sur un cas non prévu.
+
 ## 1. Serveur dédié CS2 (via SteamCMD)
 
 Contrairement à CS:GO, CS2 n'a pas d'App ID séparé pour le serveur dédié — c'est le même App ID que le client : **730**.
