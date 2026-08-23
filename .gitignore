@@ -6,9 +6,15 @@ __pycache__/
 *.egg-info/
 .eggs/
 .venv/
+.venv-consultation/
 venv/
 env/
 *.log
+
+# --- Build consultation-only (scripts/build-consultation.ps1) ---
+/build/
+/dist/
+/dist-installer/
 
 # --- .NET / C# (plugin/) ---
 bin/
