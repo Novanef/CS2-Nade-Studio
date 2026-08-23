@@ -65,6 +65,7 @@ class Waypoint:
     viewAngle: ViewAngle
     movement: Movement
     captured: bool
+    crouch: bool
     clickType: ClickType | None = None
     screenshotRef: str | None = None
     # Recadrage zoomé autour du viseur (toujours au centre exact de l'écran), avec un
@@ -81,6 +82,7 @@ class Waypoint:
             "position": self.position.to_dict(),
             "viewAngle": self.viewAngle.to_dict(),
             "movement": self.movement,
+            "crouch": self.crouch,
             "clickType": self.clickType,
             "screenshotRef": self.screenshotRef,
             "screenshotZoomRef": self.screenshotZoomRef,
@@ -97,6 +99,7 @@ class Waypoint:
             position=Position.from_dict(data["position"]),
             viewAngle=ViewAngle.from_dict(data["viewAngle"]),
             movement=data["movement"],
+            crouch=data["crouch"],
             clickType=data.get("clickType"),
             screenshotRef=data.get("screenshotRef"),
             screenshotZoomRef=data.get("screenshotZoomRef"),

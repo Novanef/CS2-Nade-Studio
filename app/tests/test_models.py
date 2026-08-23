@@ -1,3 +1,5 @@
+import pytest
+
 from core.models import Lineup, Map, Position, SpawnPoint, ViewAngle, Waypoint, derive_throw_label
 
 
@@ -11,6 +13,7 @@ def make_waypoint(**overrides) -> Waypoint:
         movement="stand",
         captured=True,
         clickType="left",
+        crouch=False,
     )
     defaults.update(overrides)
     return Waypoint(**defaults)
@@ -66,6 +69,16 @@ def test_lineup_round_trip_defaults_from_minimal_dict():
     assert lineup.notes == ""
     assert lineup.favorite is False
     assert lineup.waypoints == []
+
+
+def test_waypoint_from_dict_requires_crouch():
+    # Pas de valeur par défaut silencieuse pour crouch (décision explicite) — un
+    # waypoint dict sans ce champ doit échouer bruyamment, pas retomber sur False.
+    wp = make_waypoint()
+    data = wp.to_dict()
+    del data["crouch"]
+    with pytest.raises(KeyError):
+        Waypoint.from_dict(data)
 
 
 def test_map_round_trip():

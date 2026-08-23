@@ -27,6 +27,7 @@
           "pitch": -3.1
         },
         "movement": "walk",
+        "crouch": false,
         "clickType": null,
         "screenshotRef": null,
         "description": "Alignez l'antenne avec le mur",
@@ -46,6 +47,7 @@
           "pitch": -10.0
         },
         "movement": "jump",
+        "crouch": false,
         "clickType": "left",
         "screenshotRef": null,
         "description": "Sautez et lancez au point le plus haut",
