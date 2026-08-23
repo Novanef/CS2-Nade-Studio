@@ -18,6 +18,7 @@ def make_waypoint(**overrides) -> Waypoint:
         viewAngle=ViewAngle(yaw=10, pitch=-5),
         movement="run",
         clickType="right",
+        crouch=False,
         screenshotRef="screenshots/a.png",
         screenshotZoomRef="screenshots/a_zoom.png",
         captured=True,
@@ -60,6 +61,7 @@ def test_start_edit_prefills_draft_from_lineup():
     assert draft.category == "standard"
     assert draft.movement == "run"
     assert draft.clickType == "right"
+    assert draft.crouch is False
     assert draft.waypoint is lineup.waypoints[0]
 
 
@@ -72,11 +74,74 @@ def test_start_edit_without_existing_waypoint_uses_defaults():
     assert draft.waypoint is None
     assert draft.movement == "stand"
     assert draft.clickType == "left"
+    assert draft.crouch is False
 
 
 def test_start_creates_draft_without_editing_id():
     session = CaptureSession()
     draft = session.start(mapId="mirage", side="T", grenadeType="smoke", spotName="New spot")
+    assert draft.editingLineupId is None
+
+
+def test_start_keeps_waypoint_when_field_changed_after_capture():
+    """Régression : en création, taper le nom du spot (ou tout autre champ non
+    structurel) après une capture F9 ne doit pas invalider le waypoint, sinon le
+    bouton sauvegarder reste grisé tant que la capture n'est pas refaite en dernier."""
+    session = CaptureSession()
+    session.start(mapId="mirage", side="T", grenadeType="smoke", spotName="")
+    session.draft.waypoint = make_waypoint()
+
+    draft = session.start(mapId="mirage", side="T", grenadeType="smoke", spotName="Window smoke")
+
+    assert draft.waypoint is not None
+    assert draft.spotName == "Window smoke"
+
+
+def test_start_resyncs_waypoint_metadata_from_form():
+    session = CaptureSession()
+    session.start(mapId="mirage", side="T", grenadeType="smoke", spotName="")
+    session.draft.waypoint = make_waypoint()
+
+    draft = session.start(
+        mapId="mirage", side="T", grenadeType="smoke", spotName="x",
+        movement="jump", clickType="left", crouch=True,
+    )
+
+    assert draft.waypoint.movement == "jump"
+    assert draft.waypoint.clickType == "left"
+    assert draft.waypoint.crouch is True
+
+
+def test_start_invalidates_waypoint_on_map_change():
+    session = CaptureSession()
+    session.start(mapId="mirage", side="T", grenadeType="smoke", spotName="")
+    session.draft.waypoint = make_waypoint()
+
+    draft = session.start(mapId="dust2", side="T", grenadeType="smoke", spotName="x")
+
+    assert draft.waypoint is None
+
+
+def test_start_invalidates_waypoint_on_spawn_change():
+    session = CaptureSession()
+    session.start(mapId="mirage", side="T", grenadeType="smoke", spotName="", category="instant", spawnPoint="spawn-1")
+    session.draft.waypoint = make_waypoint()
+
+    draft = session.start(
+        mapId="mirage", side="T", grenadeType="smoke", spotName="x",
+        category="instant", spawnPoint="spawn-2",
+    )
+
+    assert draft.waypoint is None
+
+
+def test_start_does_not_leak_waypoint_from_editing_session():
+    session = CaptureSession()
+    session.start_edit(make_lineup())
+
+    draft = session.start(mapId="mirage", side="T", grenadeType="smoke", spotName="Brand new")
+
+    assert draft.waypoint is None
     assert draft.editingLineupId is None
 
 
@@ -93,6 +158,7 @@ def test_update_fields_keeps_waypoint_when_map_and_side_unchanged():
         notes="new notes",
         movement="jump",
         clickType="left",
+        crouch=True,
         category="standard",
         spawnPoint=None,
     )
@@ -104,6 +170,7 @@ def test_update_fields_keeps_waypoint_when_map_and_side_unchanged():
     # métadonnées du waypoint resynchronisées depuis le formulaire
     assert draft.waypoint.movement == "jump"
     assert draft.waypoint.clickType == "left"
+    assert draft.waypoint.crouch is True
     # la position/le screenshot ne sont pas touchés
     assert draft.waypoint.position.x == 1
     assert draft.waypoint.screenshotRef == "screenshots/a.png"
@@ -121,6 +188,7 @@ def test_update_fields_invalidates_waypoint_on_map_change():
         notes="",
         movement="stand",
         clickType="left",
+        crouch=False,
         category="standard",
         spawnPoint=None,
     )
@@ -141,6 +209,7 @@ def test_update_fields_invalidates_waypoint_on_spawn_change():
         notes="",
         movement="run",
         clickType="right",
+        crouch=False,
         category="instant",
         spawnPoint="spawn-2",
     )
@@ -161,6 +230,7 @@ def test_update_fields_invalidates_waypoint_on_side_change():
         notes="",
         movement="stand",
         clickType="left",
+        crouch=False,
         category="standard",
         spawnPoint=None,
     )
@@ -179,6 +249,7 @@ def test_update_fields_without_draft_raises():
             notes="",
             movement="stand",
             clickType="left",
+            crouch=False,
             category="standard",
             spawnPoint=None,
         )

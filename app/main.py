@@ -5,10 +5,8 @@ Voir docs/architecture-technique-lineups.md pour la vue d'ensemble des composant
 
 from __future__ import annotations
 
-import base64
 import ctypes
 import json
-import mimetypes
 import os
 import threading
 import time
@@ -16,10 +14,9 @@ from pathlib import Path
 
 import keyboard
 import webview
-from PIL import Image
 
-from core import capture as core_capture
-from core import plugin_client, storage
+from core import api_base, plugin_client, storage
+from core.api_base import BrowseApi
 from core.capture import CaptureSession, new_lineup_dict, updated_lineup_fields
 from core.models import Lineup
 from core.plugin_client import PluginUnavailableError
@@ -54,11 +51,6 @@ overlay_window: webview.Window | None = None
 # capture F9 (voir CLAUDE.md), donc ce bouton permet de le tester à la main.
 _hud_hidden_original: dict | None = None
 
-_asset_data_url_cache: dict[str, str] = {}
-_screenshot_data_url_cache: dict[str, str] = {}
-_screenshot_thumb_cache: dict[str, str] = {}
-_screenshot_detail_cache: dict[str, str] = {}
-
 # Overlay affiché seulement quand le serveur + un joueur sont connectés — état
 # géré par _poll_overlay_visibility(), voir main().
 _overlay_visible = False
@@ -81,115 +73,9 @@ _active_lineup_id: str | None = None
 _pending_map_fix: str | None = None
 
 
-def _file_to_data_url(root: Path, relative_path: str, cache: dict[str, str]) -> str | None:
-    """Convertit un fichier (relatif à `root`) en data URI base64, en confinant la
-    résolution à `root` — évite de dépendre du serveur de fichiers local de pywebview,
-    qui bloque la remontée de dossiers ('..')."""
-    if relative_path in cache:
-        return cache[relative_path]
-
-    path = (root / relative_path).resolve()
-    if root.resolve() not in path.parents or not path.is_file():
-        return None
-
-    mime_type, _ = mimetypes.guess_type(path.name)
-    encoded = base64.b64encode(path.read_bytes()).decode("ascii")
-    data_url = f"data:{mime_type or 'application/octet-stream'};base64,{encoded}"
-    cache[relative_path] = data_url
-    return data_url
-
-
-def _derived_screenshot_data_url(
-    screenshot_ref: str, suffix: str, max_width: int, quality: int, cache: dict[str, str]
-) -> str | None:
-    """Comme _file_to_data_url, mais résout un dérivé JPEG allégé du screenshot
-    (`<stem><suffix>.jpg`, ex. '_thumb'/'_detail' — voir core.capture._save_resized_jpeg),
-    en le générant depuis l'original si absent (screenshots capturés avant l'ajout de ce
-    mécanisme). Évite d'envoyer l'original ~8 Mo à travers le pont IPC pywebview à chaque
-    sélection de lineup, alors que l'UI n'affiche jamais l'image à sa pleine résolution."""
-    if screenshot_ref in cache:
-        return cache[screenshot_ref]
-
-    original_path = (storage.USER_DIR / screenshot_ref).resolve()
-    if storage.USER_DIR.resolve() not in original_path.parents or not original_path.is_file():
-        return None
-
-    derived_path = original_path.with_name(f"{original_path.stem}{suffix}.jpg")
-    if not derived_path.is_file():
-        with Image.open(original_path) as image:
-            core_capture._save_resized_jpeg(image, derived_path, max_width, quality)
-
-    encoded = base64.b64encode(derived_path.read_bytes()).decode("ascii")
-    data_url = f"data:image/jpeg;base64,{encoded}"
-    cache[screenshot_ref] = data_url
-    return data_url
-
-
-class Api:
-    # --- Bibliothèque de lineups (Phase 4) ---
-
-    def get_maps(self) -> list[dict]:
-        return [m.to_dict() for m in storage.load_maps()]
-
-    def get_asset_data_url(self, relative_path: str) -> str | None:
-        """Convertit un chemin d'asset (relatif à app/, ex. 'assets/radar/mirage.png') en
-        data URI base64 — évite de dépendre de la résolution de chemins relatifs par le
-        serveur local de pywebview, qui bloque la remontée de dossiers ('..')."""
-        return _file_to_data_url(APP_DIR, relative_path, _asset_data_url_cache)
-
-    def get_screenshot_data_url(self, screenshot_ref: str) -> str | None:
-        """Même mécanisme que get_asset_data_url, mais résolu depuis USER_DIR — les
-        screenshots de capture (`screenshotRef`, ex. 'screenshots/<uuid>.png') sont
-        stockés hors de app/ (voir core.storage.SCREENSHOTS_DIR)."""
-        return _file_to_data_url(storage.USER_DIR, screenshot_ref, _screenshot_data_url_cache)
-
-    def get_screenshot_thumb_data_url(self, screenshot_ref: str) -> str | None:
-        """Dérivé JPEG allégé (voir _derived_screenshot_data_url) pour les vignettes de
-        la vue groupée "instant smoke" — évite d'envoyer l'original ~8 Mo par vignette."""
-        return _derived_screenshot_data_url(
-            screenshot_ref,
-            "_thumb",
-            core_capture._THUMB_WIDTH,
-            core_capture._THUMB_JPEG_QUALITY,
-            _screenshot_thumb_cache,
-        )
-
-    def get_screenshot_detail_data_url(self, screenshot_ref: str) -> str | None:
-        """Dérivé JPEG allégé (voir _derived_screenshot_data_url) pour l'image principale
-        de la vue détail d'un lineup — le crop zoom (get_screenshot_data_url avec
-        screenshotZoomRef) reste inchangé pour la vérification précise de l'alignement."""
-        return _derived_screenshot_data_url(
-            screenshot_ref,
-            "_detail",
-            core_capture._DETAIL_MAX_WIDTH,
-            core_capture._DETAIL_JPEG_QUALITY,
-            _screenshot_detail_cache,
-        )
-
-    def get_lineups(self, mapId=None, side=None, grenadeType=None, category=None) -> list[dict]:
-        lineups = storage.list_lineups(mapId=mapId, side=side, grenadeType=grenadeType, category=category)
-        return [self._lineup_view(l) for l in lineups]
-
-    def get_lineup(self, lineup_id: str) -> dict | None:
-        lineup = storage.get_lineup(lineup_id)
-        return self._lineup_view(lineup) if lineup else None
-
-    @staticmethod
-    def _lineup_view(lineup: Lineup) -> dict:
-        data = lineup.to_dict()
-        data["throwLabel"] = lineup.throw_label
-        return data
-
-    def toggle_favorite(self, lineup_id: str) -> dict:
-        lineup = storage.get_lineup(lineup_id)
-        if lineup is None:
-            return {"status": "error", "message": "Lineup introuvable."}
-        updated = storage.update_lineup(lineup_id, favorite=not lineup.favorite)
-        return {"status": "ok", "lineup": self._lineup_view(updated)}
-
-    def delete_lineup(self, lineup_id: str) -> dict:
-        deleted = storage.delete_lineup(lineup_id)
-        return {"status": "deleted" if deleted else "error"}
+class Api(BrowseApi):
+    def get_mode(self) -> str:
+        return "full"
 
     def set_active_lineup(self, lineup_id: str | None) -> None:
         """Synchronise le lineup actuellement consulté dans l'UI — F6 (on_test_hotkey)
@@ -208,6 +94,7 @@ class Api:
         notes="",
         movement="stand",
         clickType="left",
+        crouch=False,
         category="standard",
         spawnPoint=None,
     ) -> dict:
@@ -219,11 +106,12 @@ class Api:
             notes=notes,
             movement=movement,
             clickType=clickType,
+            crouch=crouch,
             category=category,
             spawnPoint=spawnPoint,
         )
         set_overlay_status("ready")
-        return {"status": "started", "spotName": draft.spotName}
+        return self._draft_view(draft)
 
     def start_edit_capture(self, lineup_id: str) -> dict:
         """Réutilise le formulaire de création en mode édition (bouton Éditer) —
@@ -244,6 +132,7 @@ class Api:
         notes,
         movement,
         clickType,
+        crouch,
         category,
         spawnPoint,
     ) -> dict:
@@ -275,13 +164,11 @@ class Api:
             notes=notes,
             movement=movement,
             clickType=clickType,
+            crouch=crouch,
             category=category,
             spawnPoint=spawnPoint,
         )
         return self._draft_view(draft)
-
-    def get_spawnpoints(self, mapId=None, side=None) -> list[dict]:
-        return [sp.to_dict() for sp in storage.list_spawnpoints(mapId=mapId, side=side)]
 
     def teleport_to_spawn(self, spawnpoint_id: str) -> dict:
         spawnpoint = storage.get_spawnpoint(spawnpoint_id)
@@ -360,6 +247,7 @@ class Api:
             "notes": draft.notes,
             "movement": draft.movement,
             "clickType": draft.clickType,
+            "crouch": draft.crouch,
             "category": draft.category,
             "spawnPoint": draft.spawnPoint,
             "waypoint": draft.waypoint.to_dict() if draft.waypoint else None,
@@ -629,6 +517,7 @@ def main() -> None:
         width=1000,
         height=720,
     )
+    api_base.set_main_window(main_window)
 
     screen_w, screen_h = get_screen_size()
     overlay_w, overlay_h = 240, 100

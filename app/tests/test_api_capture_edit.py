@@ -36,6 +36,7 @@ def make_lineup_dict(**overrides) -> dict:
                 "viewAngle": {"yaw": 0, "pitch": 0},
                 "movement": "run",
                 "clickType": "left",
+                "crouch": False,
                 "screenshotRef": "screenshots/a.png",
                 "screenshotZoomRef": None,
                 "description": None,
@@ -80,6 +81,7 @@ def test_switching_to_already_captured_spawn_loads_its_own_data(api, isolated_st
                     "viewAngle": {"yaw": 90, "pitch": 0},
                     "movement": "stand",
                     "clickType": "right",
+                    "crouch": False,
                     "screenshotRef": "screenshots/b.png",
                     "screenshotZoomRef": None,
                     "description": None,
@@ -98,6 +100,7 @@ def test_switching_to_already_captured_spawn_loads_its_own_data(api, isolated_st
         notes="",
         movement="run",
         clickType="left",
+        crouch=False,
         category="instant",
         spawnPoint="spawn-2",
     )
@@ -119,6 +122,7 @@ def test_switching_to_empty_spawn_still_invalidates_waypoint(api, isolated_stora
         notes="",
         movement="run",
         clickType="left",
+        crouch=False,
         category="instant",
         spawnPoint="spawn-3",
     )
@@ -139,6 +143,7 @@ def test_reselecting_own_spawn_keeps_editing_same_lineup(api, isolated_storage):
         notes="",
         movement="run",
         clickType="left",
+        crouch=False,
         category="instant",
         spawnPoint="spawn-1",
     )

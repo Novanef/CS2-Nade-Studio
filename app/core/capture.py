@@ -20,6 +20,13 @@ import psutil
 from PIL import Image, ImageDraw
 
 from core import plugin_client
+from core.image_derivatives import (
+    DETAIL_JPEG_QUALITY as _DETAIL_JPEG_QUALITY,
+    DETAIL_MAX_WIDTH as _DETAIL_MAX_WIDTH,
+    THUMB_JPEG_QUALITY as _THUMB_JPEG_QUALITY,
+    THUMB_WIDTH as _THUMB_WIDTH,
+    save_resized_jpeg as _save_resized_jpeg,
+)
 from core.models import ClickType, GrenadeType, Lineup, LineupCategory, Movement, Position, Side, ViewAngle, Waypoint
 from core.storage import SCREENSHOTS_DIR
 
@@ -46,17 +53,6 @@ _ZOOM_SCALE = 4
 # chaque sélection de lineup dans l'UI (voir get_screenshot_thumb_data_url /
 # get_screenshot_detail_data_url dans main.py). Le crop zoom (_zoom.png) n'est pas
 # concerné, déjà assez petit pour vérifier l'alignement précis du viseur.
-_THUMB_WIDTH = 240
-_THUMB_JPEG_QUALITY = 70
-_DETAIL_MAX_WIDTH = 1600
-_DETAIL_JPEG_QUALITY = 95
-
-
-def _save_resized_jpeg(image: Image.Image, path, max_width: int, quality: int) -> None:
-    if image.width > max_width:
-        ratio = max_width / image.width
-        image = image.resize((max_width, round(image.height * ratio)), Image.LANCZOS)
-    image.convert("RGB").save(path, "JPEG", quality=quality)
 
 
 def _is_dedicated_server_process(pid: int) -> bool:
@@ -207,6 +203,7 @@ class CaptureDraft:
     category: LineupCategory = "standard"
     movement: Movement = "stand"
     clickType: ClickType = "left"
+    crouch: bool = False
     spawnPoint: str | None = None
     waypoint: Waypoint | None = None
     editingLineupId: str | None = None
@@ -228,9 +225,33 @@ class CaptureSession:
         category: LineupCategory = "standard",
         movement: Movement = "stand",
         clickType: ClickType = "left",
+        crouch: bool = False,
         spawnPoint: str | None = None,
         editingLineupId: str | None = None,
     ) -> CaptureDraft:
+        """Le formulaire de création appelle cette méthode à l'ouverture ET à
+        chaque champ modifié (voir armCapture côté JS, pas de bouton "Démarrer"
+        séparé) — il faut donc, comme update_fields en édition, conserver le
+        waypoint déjà capturé plutôt que le jeter à chaque frappe, sauf si la
+        carte/le camp/le spawn change (la position capturée n'a alors plus de
+        sens). Sans ça, taper le nom du spot après un F9 invalidait la capture
+        et grisait indéfiniment le bouton sauvegarder tant qu'on ne recapturait
+        pas en dernier."""
+        previous = self.draft
+        waypoint = None
+        if (
+            previous is not None
+            and previous.editingLineupId is None
+            and previous.mapId == mapId
+            and previous.side == side
+            and previous.spawnPoint == spawnPoint
+        ):
+            waypoint = previous.waypoint
+            if waypoint is not None:
+                waypoint.movement = movement
+                waypoint.clickType = clickType
+                waypoint.crouch = crouch
+
         self.draft = CaptureDraft(
             mapId=mapId,
             side=side,
@@ -240,8 +261,10 @@ class CaptureSession:
             category=category,
             movement=movement,
             clickType=clickType,
+            crouch=crouch,
             spawnPoint=spawnPoint,
             editingLineupId=editingLineupId,
+            waypoint=waypoint,
         )
         return self.draft
 
@@ -260,6 +283,7 @@ class CaptureSession:
             category=lineup.category,
             movement=wp.movement if wp else "stand",
             clickType=wp.clickType if wp and wp.clickType else "left",
+            crouch=wp.crouch if wp else False,
             spawnPoint=lineup.spawnPoint,
             waypoint=wp,
             editingLineupId=lineup.id,
@@ -275,6 +299,7 @@ class CaptureSession:
         notes: str,
         movement: Movement,
         clickType: ClickType,
+        crouch: bool,
         category: LineupCategory,
         spawnPoint: str | None,
     ) -> CaptureDraft:
@@ -299,12 +324,14 @@ class CaptureSession:
         self.draft.notes = notes
         self.draft.movement = movement
         self.draft.clickType = clickType
+        self.draft.crouch = crouch
         self.draft.category = category
         self.draft.spawnPoint = spawnPoint
 
         if self.draft.waypoint is not None:
             self.draft.waypoint.movement = movement
             self.draft.waypoint.clickType = clickType
+            self.draft.waypoint.crouch = crouch
 
         return self.draft
 
@@ -330,6 +357,7 @@ class CaptureSession:
             viewAngle=ViewAngle(yaw=position["yaw"], pitch=position["pitch"]),
             movement=self.draft.movement,
             clickType=self.draft.clickType,
+            crouch=self.draft.crouch,
             screenshotRef=screenshot_ref,
             screenshotZoomRef=screenshot_zoom_ref,
             captured=True,

@@ -9,9 +9,10 @@ import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 import pytest
+import webview
 
 import main
-from core import plugin_client, storage
+from core import api_base, plugin_client, storage
 from core.capture import CaptureSession
 from core.models import Lineup, Position, ViewAngle, Waypoint
 
@@ -54,6 +55,14 @@ def api(isolated_storage, monkeypatch):
     return main.Api()
 
 
+def test_api_is_browse_api_subclass_in_full_mode():
+    """Garde-fou anti-régression : Api (app complète) doit rester une sous-classe de
+    BrowseApi (browse/consultation, voir core/api_base.py) et annoncer 'full', pas
+    'consultation' — voir test_browse_api_get_mode_is_consultation dans test_api_base.py."""
+    assert issubclass(main.Api, api_base.BrowseApi)
+    assert main.Api().get_mode() == "full"
+
+
 # --- get_asset_data_url / get_screenshot_data_url : garde-fou anti path traversal ---
 
 
@@ -94,6 +103,7 @@ def test_get_lineups_includes_throw_label(isolated_storage, api):
                 "viewAngle": {"yaw": 0, "pitch": 0},
                 "movement": "run",
                 "clickType": "left",
+                "crouch": False,
                 "screenshotRef": None,
                 "screenshotZoomRef": None,
                 "description": None,
@@ -133,6 +143,107 @@ def test_delete_lineup(isolated_storage, api):
     assert api.get_lineup("a") is None
 
 
+def test_delete_lineups_bulk(isolated_storage, api):
+    seed(isolated_storage, [make_lineup_dict(id="a"), make_lineup_dict(id="b")])
+
+    result = api.delete_lineups(["a"])
+
+    assert result == {"status": "ok", "deleted": 1}
+    assert [l["id"] for l in api.get_lineups()] == ["b"]
+
+
+def test_delete_instant_group(isolated_storage, api):
+    seed(isolated_storage, [
+        make_lineup_dict(id="a", category="instant", spotName="Instant window", spawnPoint="spawn-1"),
+        make_lineup_dict(id="b", category="instant", spotName="Instant window", spawnPoint="spawn-2"),
+        make_lineup_dict(id="c", category="standard", spotName="Other lineup"),
+    ])
+
+    result = api.delete_instant_group("mirage", "T", "Instant window")
+
+    assert result == {"status": "ok", "deleted": 2}
+    assert [l["id"] for l in api.get_lineups()] == ["c"]
+
+
+def test_delete_instant_group_no_matches(isolated_storage, api):
+    seed(isolated_storage, [make_lineup_dict(id="a")])
+
+    result = api.delete_instant_group("mirage", "T", "Instant window")
+
+    assert result == {"status": "ok", "deleted": 0}
+
+
+# --- export_lineups / export_library / import_lineups : boîtes de dialogue
+# système, remplacées par un faux main_window (aucune vraie fenêtre en test) ---
+
+
+class _FakeWindow:
+    def __init__(self, dialog_result=None):
+        self.dialog_result = dialog_result
+        self.dialog_calls = []
+
+    def create_file_dialog(self, dialog_type, **kwargs):
+        self.dialog_calls.append((dialog_type, kwargs))
+        return self.dialog_result
+
+
+def test_export_lineups_writes_zip(isolated_storage, api, tmp_path, monkeypatch):
+    seed(isolated_storage, [make_lineup_dict(id="a")])
+    dest = tmp_path / "out.zip"
+    fake_window = _FakeWindow(dialog_result=(str(dest),))
+    monkeypatch.setattr(api_base, "main_window", fake_window)
+
+    result = api.export_lineups(["a"])
+
+    assert result == {"status": "ok", "count": 1, "missingScreenshots": 0}
+    assert dest.is_file()
+    assert fake_window.dialog_calls[0][0] == webview.FileDialog.SAVE
+
+
+def test_export_lineups_cancelled_dialog(isolated_storage, api, monkeypatch):
+    seed(isolated_storage, [make_lineup_dict(id="a")])
+    monkeypatch.setattr(api_base, "main_window", _FakeWindow(dialog_result=None))
+
+    result = api.export_lineups(["a"])
+
+    assert result == {"status": "cancelled"}
+
+
+def test_export_library_includes_all_lineups(isolated_storage, api, tmp_path, monkeypatch):
+    seed(isolated_storage, [make_lineup_dict(id="a"), make_lineup_dict(id="b")])
+    dest = tmp_path / "out.zip"
+    monkeypatch.setattr(api_base, "main_window", _FakeWindow(dialog_result=(str(dest),)))
+
+    result = api.export_library()
+
+    assert result["count"] == 2
+
+
+def test_import_lineups_from_dialog(isolated_storage, api, tmp_path, monkeypatch):
+    from core import export_import
+
+    export_dest = tmp_path / "export.zip"
+    seed(isolated_storage, [make_lineup_dict(id="a")])
+    export_import.build_export_zip(["a"], str(export_dest))
+    # repart d'une bibliothèque vide pour observer l'import isolément
+    seed(isolated_storage, [])
+    monkeypatch.setattr(api_base, "main_window", _FakeWindow(dialog_result=(str(export_dest),)))
+
+    result = api.import_lineups()
+
+    assert result["status"] == "ok"
+    assert result["imported"] == 1
+    assert len(api.get_lineups()) == 1
+
+
+def test_import_lineups_cancelled_dialog(isolated_storage, api, monkeypatch):
+    monkeypatch.setattr(api_base, "main_window", _FakeWindow(dialog_result=None))
+
+    result = api.import_lineups()
+
+    assert result == {"status": "cancelled"}
+
+
 # --- Flux de capture standard (start -> save), sans dépendre du plugin ---
 
 
@@ -154,6 +265,7 @@ def test_save_capture_requires_spot_name(api):
         viewAngle=ViewAngle(yaw=0, pitch=0),
         movement="stand",
         clickType="left",
+        crouch=False,
         captured=True,
     )
 
@@ -173,6 +285,7 @@ def test_start_capture_then_save_creates_lineup(isolated_storage, api):
         viewAngle=ViewAngle(yaw=0, pitch=0),
         movement="stand",
         clickType="left",
+        crouch=True,
         captured=True,
     )
 
@@ -183,6 +296,32 @@ def test_start_capture_then_save_creates_lineup(isolated_storage, api):
     lineups = api.get_lineups()
     assert len(lineups) == 1
     assert lineups[0]["spotName"] == "Window smoke"
+    assert lineups[0]["waypoints"][0]["crouch"] is True
+
+
+def test_start_capture_passes_crouch_to_draft(api):
+    api.start_capture(mapId="mirage", side="T", grenadeType="smoke", spotName="Window", crouch=True)
+
+    assert main.capture_session.draft.crouch is True
+
+
+def test_update_capture_fields_passes_crouch_to_draft(api):
+    api.start_capture(mapId="mirage", side="T", grenadeType="smoke", spotName="Window")
+
+    api.update_capture_fields(
+        mapId="mirage",
+        side="T",
+        grenadeType="smoke",
+        spotName="Window",
+        notes="",
+        movement="stand",
+        clickType="left",
+        category="standard",
+        spawnPoint=None,
+        crouch=True,
+    )
+
+    assert main.capture_session.draft.crouch is True
 
 
 def test_cancel_capture_clears_draft(api):
@@ -365,6 +504,7 @@ def make_lineup_with_throw(**overrides):
                 movement="stand",
                 captured=True,
                 clickType="left",
+                crouch=False,
             )
         ],
     )
