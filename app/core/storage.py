@@ -8,11 +8,22 @@ from __future__ import annotations
 
 import json
 import shutil
+import sys
 from pathlib import Path
 
 from core.models import Lineup, LineupCategory, Map, SpawnPoint
 
-DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+
+def _bundle_root() -> Path:
+    """Racine des assets embarqués en lecture seule (maps.json, seed, radar) — le
+    dossier app/ en développement, ou le dossier d'extraction PyInstaller une fois
+    empaqueté (`sys._MEIPASS`, présent aussi bien en --onedir qu'en --onefile)."""
+    if getattr(sys, "frozen", False):
+        return Path(sys._MEIPASS)
+    return Path(__file__).resolve().parent.parent
+
+
+DATA_DIR = _bundle_root() / "data"
 SEED_DIR = DATA_DIR / "seed"
 USER_DIR = DATA_DIR / "user"
 
@@ -21,13 +32,31 @@ LINEUPS_FILE = USER_DIR / "lineups.json"
 SCREENSHOTS_DIR = USER_DIR / "screenshots"
 
 
+def configure_user_dir(path: Path) -> None:
+    """Redirige le stockage utilisateur inscriptible (lineups + screenshots) vers
+    `path`, indépendamment de MAPS_FILE/SEED_DIR (lecture seule, résolus depuis le
+    bundle). Utilisé par app/main_consultation.py pour écrire dans un dossier type
+    %APPDATA%\\CS2NadeStudioViewer\\ plutôt que dans le dossier d'installation de
+    l'exe (souvent en lecture seule une fois empaqueté). Doit être appelé avant tout
+    accès aux lineups (avant la création de l'Api)."""
+    global USER_DIR, LINEUPS_FILE, SCREENSHOTS_DIR
+    USER_DIR = Path(path)
+    LINEUPS_FILE = USER_DIR / "lineups.json"
+    SCREENSHOTS_DIR = USER_DIR / "screenshots"
+
+
 def _ensure_seeded(user_path: Path, seed_path: Path) -> None:
-    """Initialise un fichier de données utilisateur à partir du seed versionné,
-    une seule fois (premier lancement / clone frais)."""
+    """Initialise un fichier de données utilisateur à partir du seed versionné, une
+    seule fois (premier lancement / clone frais). Le build consultation-only n'embarque
+    pas de seed (voir CS2 Nade Studio, distribution) — dans ce cas, démarre avec une
+    bibliothèque vide plutôt que de planter sur un fichier source manquant."""
     if user_path.exists():
         return
     user_path.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(seed_path, user_path)
+    if seed_path.exists():
+        shutil.copyfile(seed_path, user_path)
+    else:
+        user_path.write_text("[]", encoding="utf-8")
 
 
 def _load_json(path: Path) -> list:
@@ -141,3 +170,30 @@ def delete_lineup(lineup_id: str) -> bool:
         return False
     save_lineups(remaining)
     return True
+
+
+def delete_lineups(lineup_ids: list[str]) -> int:
+    """Suppression groupée (sélection multiple) — une seule lecture/écriture plutôt
+    qu'un appel à delete_lineup par id."""
+    ids = set(lineup_ids)
+    lineups = load_lineups()
+    remaining = [l for l in lineups if l.id not in ids]
+    deleted = len(lineups) - len(remaining)
+    if deleted:
+        save_lineups(remaining)
+    return deleted
+
+
+def delete_lineup_group(mapId: str, side: str, category: str, spotName: str) -> int:
+    """Supprime tous les lineups d'un groupe "instant" (un par spawn) en une seule
+    lecture/écriture — même rationale que delete_lineups() pour la sélection multiple."""
+    lineups = load_lineups()
+    remaining = [
+        l
+        for l in lineups
+        if not (l.mapId == mapId and l.side == side and l.category == category and l.spotName == spotName)
+    ]
+    deleted = len(lineups) - len(remaining)
+    if deleted:
+        save_lineups(remaining)
+    return deleted

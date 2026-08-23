@@ -113,6 +113,7 @@ def test_add_and_get_lineup(isolated_storage):
                 movement="stand",
                 captured=True,
                 clickType="left",
+                crouch=False,
             )
         ],
     )
@@ -172,3 +173,91 @@ def test_delete_lineup_missing_returns_false(isolated_storage):
     seed(isolated_storage, [make_lineup_dict(id="a")])
     assert storage.delete_lineup("missing") is False
     assert [l.id for l in storage.load_lineups()] == ["a"]
+
+
+def test_delete_lineups_removes_only_matching_ids(isolated_storage):
+    seed(isolated_storage, [make_lineup_dict(id="a"), make_lineup_dict(id="b"), make_lineup_dict(id="c")])
+    deleted = storage.delete_lineups(["a", "c", "missing"])
+    assert deleted == 2
+    assert [l.id for l in storage.load_lineups()] == ["b"]
+
+
+def test_delete_lineups_no_matches_returns_zero(isolated_storage):
+    seed(isolated_storage, [make_lineup_dict(id="a")])
+    assert storage.delete_lineups(["missing"]) == 0
+    assert [l.id for l in storage.load_lineups()] == ["a"]
+
+
+def test_delete_lineup_group_removes_all_matching_spawns(isolated_storage):
+    seed(isolated_storage, [
+        make_lineup_dict(id="a", category="instant", spotName="Instant window", spawnPoint="spawn-1"),
+        make_lineup_dict(id="b", category="instant", spotName="Instant window", spawnPoint="spawn-2"),
+        make_lineup_dict(id="c", category="instant", spotName="Instant window", spawnPoint="spawn-3"),
+        make_lineup_dict(id="unrelated", category="instant", spotName="Other spot", spawnPoint="spawn-1"),
+    ])
+    deleted = storage.delete_lineup_group(mapId="mirage", side="T", category="instant", spotName="Instant window")
+    assert deleted == 3
+    assert [l.id for l in storage.load_lineups()] == ["unrelated"]
+
+
+def test_delete_lineup_group_no_matches_returns_zero(isolated_storage):
+    seed(isolated_storage, [make_lineup_dict(id="a", category="instant", spotName="Other spot")])
+    deleted = storage.delete_lineup_group(mapId="mirage", side="T", category="instant", spotName="Instant window")
+    assert deleted == 0
+    assert [l.id for l in storage.load_lineups()] == ["a"]
+
+
+def test_delete_lineup_group_does_not_cross_side_or_map_boundaries(isolated_storage):
+    seed(isolated_storage, [
+        make_lineup_dict(id="a", mapId="mirage", side="T", category="instant", spotName="Instant window", spawnPoint="spawn-1"),
+        make_lineup_dict(id="b", mapId="mirage", side="CT", category="instant", spotName="Instant window", spawnPoint="spawn-1"),
+        make_lineup_dict(id="c", mapId="dust2", side="T", category="instant", spotName="Instant window", spawnPoint="spawn-1"),
+    ])
+    deleted = storage.delete_lineup_group(mapId="mirage", side="T", category="instant", spotName="Instant window")
+    assert deleted == 1
+    assert {l.id for l in storage.load_lineups()} == {"b", "c"}
+
+
+def test_ensure_seeded_without_seed_file_creates_empty_list(tmp_path, monkeypatch):
+    """Cas du build consultation-only, qui n'embarque pas app/data/seed/lineups.json —
+    doit démarrer avec une bibliothèque vide plutôt que planter sur shutil.copyfile."""
+    user_path = tmp_path / "user" / "lineups.json"
+    missing_seed_path = tmp_path / "seed" / "lineups.json"
+    monkeypatch.setattr(storage, "USER_DIR", tmp_path / "user")
+    monkeypatch.setattr(storage, "LINEUPS_FILE", user_path)
+    monkeypatch.setattr(storage, "SEED_DIR", tmp_path / "seed")
+
+    assert not missing_seed_path.exists()
+    lineups = storage.load_lineups()
+    assert lineups == []
+    assert user_path.exists()
+    assert json.loads(user_path.read_text(encoding="utf-8")) == []
+
+
+def test_configure_user_dir_redirects_lineups_and_screenshots(tmp_path):
+    """main_consultation.py appelle ceci pour écrire dans %APPDATA% plutôt que dans
+    le dossier d'installation de l'exe (souvent en lecture seule une fois empaqueté)."""
+    new_root = tmp_path / "CS2NadeStudioViewer"
+    original_user_dir = storage.USER_DIR
+    original_lineups_file = storage.LINEUPS_FILE
+    original_screenshots_dir = storage.SCREENSHOTS_DIR
+    try:
+        storage.configure_user_dir(new_root)
+        assert storage.USER_DIR == new_root
+        assert storage.LINEUPS_FILE == new_root / "lineups.json"
+        assert storage.SCREENSHOTS_DIR == new_root / "screenshots"
+    finally:
+        storage.USER_DIR = original_user_dir
+        storage.LINEUPS_FILE = original_lineups_file
+        storage.SCREENSHOTS_DIR = original_screenshots_dir
+
+
+def test_configure_user_dir_does_not_move_maps_file(tmp_path):
+    """MAPS_FILE reste résolu depuis la racine bundle (lecture seule, radar + maps.json
+    embarqués) — indépendant du répertoire utilisateur inscriptible."""
+    original_maps_file = storage.MAPS_FILE
+    try:
+        storage.configure_user_dir(tmp_path / "CS2NadeStudioViewer")
+        assert storage.MAPS_FILE == original_maps_file
+    finally:
+        storage.MAPS_FILE = original_maps_file
