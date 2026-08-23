@@ -36,7 +36,7 @@ test("changer un filtre pendant que le radar plein écran est ouvert met à jour
 });
 
 test("le panneau de filtres ne flotte pas par-dessus la vue de création", async ({ page }) => {
-  await page.locator("button", { hasText: "+ Nouveau lineup" }).click();
+  await page.locator("#btnNewLineup").click();
   await expect(page.locator("#view-create")).toBeVisible();
   await expect(page.locator("#lineupPanelWrap")).toBeHidden();
 });

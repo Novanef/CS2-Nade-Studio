@@ -46,9 +46,11 @@ test("ouvrir un groupe instant affiche sa grille de spawns et le screenshot du s
   await page.getByText("Instant window").click();
 
   await expect(page.locator("#instantGroupBar")).toBeVisible();
-  // Filtre camp = "Tous" par défaut => le titre précise le camp entre parenthèses
-  // (voir renderInstantGroupView : state.filters.side === null).
-  await expect(page.locator("#instantGroupTitle")).toHaveText("Instant window (T)");
+  // Filtre camp = "Tous" par défaut => le camp du groupe (T) se voit à la teinte
+  // de la barre plutôt qu'en texte entre parenthèses (voir renderInstantGroupView :
+  // state.filters.side === null).
+  await expect(page.locator("#instantGroupTitle")).toHaveText("Instant window");
+  await expect(page.locator("#instantGroupBar")).toHaveClass(/side-t/);
   // 2 spawns pour ce groupe (fixture) => 2 marqueurs sur le radar zoomé.
   await expect(page.locator("#instantGroupRadarWrap .instant-marker")).toHaveCount(2);
   // Le spawn 1 a un lineup capturé => auto-sélectionné, son screenshot doit s'afficher.

@@ -46,10 +46,10 @@ test("les lineups proches se regroupent sous une icône avec badge, même de typ
   // signalé), mais une icône dédiée "types mixtes". Le cluster uniforme (he+he)
   // garde lui l'icône de son type.
   const mixedIcon = await badgedMarkers.first().innerHTML();
-  expect(mixedIcon).not.toContain("#9ca3af"); // fill de l'icône smoke
-  expect(mixedIcon).not.toContain("#fbbf24"); // fill de l'icône flash
+  expect(mixedIcon).not.toContain("#8b93a0"); // fill de l'icône smoke
+  expect(mixedIcon).not.toContain("#d9cfa8"); // fill de l'icône flash
   const uniformIcon = await badgedMarkers.last().innerHTML();
-  expect(uniformIcon).toContain("#4d7c0f"); // fill de l'icône he
+  expect(uniformIcon).toContain("#7a4a2b"); // fill de l'icône he
 });
 
 test("cliquer un marqueur groupé ouvre un popover listant le type de chaque lineup pour choisir", async ({ page }) => {
@@ -62,23 +62,20 @@ test("cliquer un marqueur groupé ouvre un popover listant le type de chaque lin
   await expect(popover).toBeVisible();
   const entries = popover.locator("button");
   await expect(entries).toHaveCount(3);
-  // Ordre = ordre d'insertion dans le cluster. Le type de grenade doit apparaître pour
-  // distinguer les entrées d'un cluster mélangé (sinon même souci de confusion que le
-  // bug signalé, mais dans le popover cette fois).
+  // Ordre = ordre d'insertion dans le cluster. Le type de grenade est porté par
+  // l'icône de chaque entrée, pas répété en texte (voir openRadarClusterPopover) —
+  // seul le nom du spot et le libellé de déplacement restent du texte ici.
   await expect(entries.nth(0)).toContainText("Window smoke");
-  await expect(entries.nth(0)).toContainText("Smoke");
   await expect(entries.nth(0)).toContainText("Jumpthrow");
   await expect(entries.nth(1)).toContainText("Window smoke (dup)");
-  await expect(entries.nth(1)).toContainText("Smoke");
   await expect(entries.nth(2)).toContainText("Window flash");
-  await expect(entries.nth(2)).toContainText("Flash");
 
   // Chaque entrée montre l'icône de SON propre type (pas celle, potentiellement
   // trompeuse, du marqueur groupé) — smoke pour les deux premières, flash pour la 3e.
   await expect(entries.nth(0).locator("svg")).toHaveCount(1);
-  expect(await entries.nth(0).innerHTML()).toContain("#9ca3af"); // fill icône smoke
-  expect(await entries.nth(1).innerHTML()).toContain("#9ca3af");
-  expect(await entries.nth(2).innerHTML()).toContain("#fbbf24"); // fill icône flash
+  expect(await entries.nth(0).innerHTML()).toContain("#8b93a0"); // fill icône smoke
+  expect(await entries.nth(1).innerHTML()).toContain("#8b93a0");
+  expect(await entries.nth(2).innerHTML()).toContain("#d9cfa8"); // fill icône flash
 
   await entries.nth(2).click();
 

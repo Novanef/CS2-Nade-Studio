@@ -322,6 +322,7 @@ let editingCaptureId = null;
 
 window.pywebview = {
   api: {
+    get_mode: async () => "full",
     get_maps: async () => MAPS,
     get_lineups: async (mapId, side, grenadeType, category) =>
       LINEUPS.filter((l) => matches(l, mapId, side, grenadeType, category)),
@@ -340,7 +341,21 @@ window.pywebview = {
     change_server_map: async () => ({ status: "ok" }),
     teleport_to_spawn: async () => ({ status: "ok" }),
     toggle_favorite: async (id) => ({ status: "ok", lineup: LINEUPS.find((l) => l.id === id) }),
-    delete_lineup: async () => ({ status: "deleted" }),
+    delete_lineup: async (id) => {
+      const index = LINEUPS.findIndex((l) => l.id === id);
+      if (index !== -1) LINEUPS.splice(index, 1);
+      return { status: index !== -1 ? "deleted" : "error" };
+    },
+    delete_instant_group: async (mapId, side, spotName) => {
+      const before = LINEUPS.length;
+      for (let i = LINEUPS.length - 1; i >= 0; i--) {
+        const l = LINEUPS[i];
+        if (l.mapId === mapId && l.side === side && l.category === "instant" && l.spotName === spotName) {
+          LINEUPS.splice(i, 1);
+        }
+      }
+      return { status: "ok", deleted: before - LINEUPS.length };
+    },
     start_edit_capture: async (id) => {
       editingCaptureId = id;
       return {};

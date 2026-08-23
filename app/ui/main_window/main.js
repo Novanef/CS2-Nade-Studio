@@ -1,3 +1,80 @@
+// Icônes de la barre d'outils (sélection/export/import) — traits type Feather Icons
+// (stroke="currentColor", suit la couleur du texte du bouton dans les deux thèmes).
+const TOOLBAR_ICONS = {
+  select:
+    '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
+  close:
+    '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+  download:
+    '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
+  upload:
+    '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>',
+  trash:
+    '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>',
+  plus:
+    '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>',
+  star:
+    '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/></svg>',
+  starFilled:
+    '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/></svg>',
+  pencil:
+    '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>',
+  panelLeft:
+    '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg>',
+  arrowLeft:
+    '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>',
+  save:
+    '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/></svg>',
+  eye:
+    '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>',
+  eyeOff:
+    '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/><path d="m2 2 20 20"/></svg>',
+  target:
+    '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>',
+  map:
+    '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15"/><path d="M9 3.236v15"/></svg>',
+};
+
+function setButtonIcon(buttonId, iconKey) {
+  document.getElementById(buttonId).insertAdjacentHTML("afterbegin", TOOLBAR_ICONS[iconKey]);
+}
+
+// Contrairement à setButtonIcon (ajoute une fois, à l'init, devant un texte qui ne
+// change jamais), remplace tout le contenu — pour les boutons dont l'icône reflète
+// un état qui bascule (favori, HUD affiché/masqué).
+function setButtonIconOnly(buttonId, iconKey) {
+  document.getElementById(buttonId).innerHTML = TOOLBAR_ICONS[iconKey];
+}
+
+function initToolbarIcons() {
+  setButtonIcon("btnSelectionMode", "select");
+  setButtonIcon("btnExportSelection", "upload");
+  setButtonIcon("btnDeleteSelection", "trash");
+  // Export = envoyer un fichier hors de l'app (flèche vers le haut, comme
+  // "partager") ; Import = faire entrer un fichier dans la bibliothèque
+  // (flèche vers le bas, comme "recevoir") — inversé par rapport aux icônes
+  // Feather d'origine "download"/"upload" (bug signalé par l'utilisateur).
+  setButtonIcon("btnExportLibrary", "upload");
+  setButtonIcon("btnImportLineups", "download");
+  setButtonIcon("btnNewLineup", "plus");
+  setButtonIcon("btnEditLineup", "pencil");
+  setButtonIcon("btnDeleteLineup", "trash");
+  setButtonIcon("btnDeleteSpawnLineup", "trash");
+  setButtonIcon("btnDeleteInstantGroup", "trash");
+  setButtonIcon("btnOpenSpawnLineup", "pencil");
+  setButtonIcon("btnToggleLineupPanel", "panelLeft");
+  setButtonIcon("btnCloseRadarFullscreen", "arrowLeft");
+  setButtonIcon("btnCancelCreate", "close");
+  setButtonIcon("btnTeleportSpawn", "target");
+  setButtonIcon("btnFixMapMismatch", "map");
+  setButtonIconOnly("btnSaveCapture", "save");
+  setButtonIconOnly("btnToggleHud", "eye");
+  document.getElementById("side-CT").innerHTML = sideIconSvg("CT");
+  document.getElementById("side-T").innerHTML = sideIconSvg("T");
+  document.getElementById("form-side-CT").innerHTML = sideIconSvg("CT");
+  document.getElementById("form-side-T").innerHTML = sideIconSvg("T");
+}
+
 const GRENADE_TYPES = ["smoke", "flash", "molotov", "he", "decoy"];
 const GRENADE_LABELS = { smoke: "Smoke", flash: "Flash", molotov: "Molotov", he: "HE", decoy: "Decoy" };
 
@@ -7,6 +84,7 @@ const GRENADE_LABELS = { smoke: "Smoke", flash: "Flash", molotov: "Molotov", he:
 // dans index.html).
 
 const state = {
+  mode: "full",
   maps: [],
   lineups: [],
   filters: { mapId: null, side: null, grenadeType: null, instantOnly: false },
@@ -14,6 +92,8 @@ const state = {
   selectedLineupId: null,
   selectedInstantSpot: null,
   serverMapName: null,
+  selectionMode: false,
+  selectedIds: new Set(),
 };
 
 // Non-null lorsque #view-create est ouverte en mode édition (bouton Éditer) plutôt
@@ -50,7 +130,7 @@ function applyZoomFrameToImage(img, frame) {
 
 // Rend un radar zoomé avec un marqueur numéroté par point (spawns) — réutilisé pour
 // le picker de spawn en création et pour la vue groupée instant smoke en bibliothèque.
-// `points` : [{ leftPct, topPct, label, done, selected, onClick }]
+// `points` : [{ leftPct, topPct, label, done, selected, side, onClick }]
 function renderSpawnMarkers(wrap, points) {
   for (const el of wrap.querySelectorAll(".instant-marker")) el.remove();
   if (points.length === 0) return;
@@ -64,7 +144,12 @@ function renderSpawnMarkers(wrap, points) {
 
   for (const p of points) {
     const el = document.createElement(p.onClick ? "button" : "div");
-    el.className = "instant-marker" + (p.onClick ? "" : " static") + (p.done ? " done" : "") + (p.selected ? " selected" : "");
+    el.className =
+      "instant-marker" +
+      (p.onClick ? "" : " static") +
+      (p.done ? " done" : "") +
+      (p.selected ? " selected" : "") +
+      (p.side ? ` ${sideClassName(p.side)}` : "");
     // position posée en inline en plus de la classe CSS — un marqueur en flux
     // normal (position par défaut "static") ignore left/top et se fait couper
     // par l'overflow:hidden du wrap, invisible sans erreur ni avertissement.
@@ -127,7 +212,62 @@ async function init() {
   }
 }
 
+// Icône dans chaque option des <select> "Type de grenade"/"Clic" — un <option>
+// natif ne peut pas afficher de HTML de façon fiable (la nouvelle API CSS pour
+// ça, appearance:base-select, reste derrière un drapeau expérimental non activé
+// par défaut, vérifié en conditions réelles). SlimSelect habille le <select>
+// d'origine (vendored, voir vendor/) sans toucher à sa valeur ni son
+// comportement de formulaire — seul le rendu visuel change.
+// Instances SlimSelect des deux <select> à icônes — gardées à portée de module
+// car définir `.value` directement sur le <select> d'origine (ex. pré-remplissage
+// en édition, voir setGrenadeTypeValue/setClickTypeValue) ne déclenche pas
+// d'événement "change" et ne rafraîchit donc pas l'affichage custom de SlimSelect ;
+// il faut passer par son API (`.setSelected(...)`) pour rester synchronisé.
+let grenadeTypeSelect = null;
+let clickTypeSelect = null;
+
+const CLICK_LABELS = { left: "Gauche", right: "Droit", middle: "Milieu" };
+
+function populateIconSelects() {
+  grenadeTypeSelect = new SlimSelect({
+    select: "#form-grenadeType",
+    data: GRENADE_TYPES.map((gt) => ({
+      value: gt,
+      text: GRENADE_LABELS[gt],
+      html: `<span class="option-icon">${grenadeIconSvg(gt)}</span>${GRENADE_LABELS[gt]}`,
+    })),
+    // Un choix fait dans l'UI custom de SlimSelect doit réarmer la capture
+    // exactement comme un <select> natif (voir la boucle "input"/armCapture
+    // plus bas) — ne pas dépendre du fait que SlimSelect répercute ou non un
+    // événement natif sur le <select> d'origine.
+    events: { afterChange: () => armCapture() },
+    settings: { showSearch: false },
+  });
+  clickTypeSelect = new SlimSelect({
+    select: "#form-clickType",
+    data: Object.keys(CLICK_LABELS).map((ct) => ({
+      value: ct,
+      text: CLICK_LABELS[ct],
+      html: `<span class="option-icon">${mouseIconSvg(ct)}</span>${CLICK_LABELS[ct]}`,
+    })),
+    events: { afterChange: () => armCapture() },
+    settings: { showSearch: false },
+  });
+}
+
+function setGrenadeTypeValue(value) {
+  grenadeTypeSelect.setSelected([value]);
+}
+
+function setClickTypeValue(value) {
+  clickTypeSelect.setSelected([value]);
+}
+
 async function initInner() {
+  initToolbarIcons();
+  populateIconSelects();
+  state.mode = await api().get_mode();
+  document.body.classList.toggle("consultation-mode", state.mode === "consultation");
   state.maps = await api().get_maps();
   const mapSelect = document.getElementById("mapSelect");
   const formMapSelect = document.getElementById("form-mapId");
@@ -150,13 +290,11 @@ async function initInner() {
     refreshServerMapBadge();
   });
 
-  state.serverMapName = await api().get_server_map_name();
-  refreshServerMapBadge();
+  if (state.mode === "full") {
+    state.serverMapName = await api().get_server_map_name();
+    refreshServerMapBadge();
+  }
   formMapSelect.addEventListener("change", () => {
-    if (document.getElementById("form-category").value === "instant") loadInstantSpawnPanel();
-    armCapture();
-  });
-  document.getElementById("form-side").addEventListener("change", () => {
     if (document.getElementById("form-category").value === "instant") loadInstantSpawnPanel();
     armCapture();
   });
@@ -170,8 +308,21 @@ async function initInner() {
   for (const id of ["form-grenadeType", "form-spotName", "form-notes", "form-movement", "form-clickType"]) {
     document.getElementById(id).addEventListener("input", armCapture);
   }
+  document.getElementById("form-crouch").addEventListener("change", armCapture);
 
   await refreshLineups();
+}
+
+// "CT"/"T" -> classe CSS de teinte du camp (voir --ct-*/--t-* dans style.css).
+function sideClassName(side) {
+  return side === "CT" ? "side-ct" : "side-t";
+}
+
+// Pastille de fond derrière l'icône de grenade (voir .icon-badge dans style.css) :
+// uniformise la luminosité perçue entre les types (le flash quasi-blanc "brillait"
+// bien plus que le smoke gris foncé sur le même fond sombre — bug signalé).
+function grenadeIconBadge(type) {
+  return `<span class="icon-badge type-${type}">${grenadeIconSvg(type)}</span>`;
 }
 
 function renderCategoryPills() {
@@ -179,8 +330,10 @@ function renderCategoryPills() {
   container.innerHTML = "";
   for (const gt of GRENADE_TYPES) {
     const btn = document.createElement("button");
-    btn.className = "pill";
-    btn.textContent = GRENADE_LABELS[gt];
+    btn.className = "pill icon-btn";
+    btn.innerHTML = grenadeIconSvg(gt);
+    btn.title = GRENADE_LABELS[gt];
+    btn.setAttribute("aria-label", GRENADE_LABELS[gt]);
     btn.onclick = () => toggleGrenadeFilter(gt, btn);
     container.appendChild(btn);
   }
@@ -206,6 +359,21 @@ function setSide(side) {
 // (retour à side=null, aucun filtre), cliquer l'autre camp le remplace.
 function toggleSide(side) {
   setSide(state.filters.side === side ? null : side);
+}
+
+// Toggle CT/T du formulaire de création — contrairement au toggle de filtre
+// (toggleSide, qui autorise un état "aucun filtre" désélectionné), une valeur
+// CT ou T est toujours requise ici (comportement équivalent à l'ancien <select>).
+function setFormSide(side) {
+  document.getElementById("form-side").value = side;
+  document.getElementById("form-side-CT").classList.toggle("active", side === "CT");
+  document.getElementById("form-side-T").classList.toggle("active", side === "T");
+}
+
+function selectFormSide(side) {
+  setFormSide(side);
+  if (document.getElementById("form-category").value === "instant") loadInstantSpawnPanel();
+  armCapture();
 }
 
 function toggleLineupPanel(force) {
@@ -321,27 +489,45 @@ function renderLineups() {
   strip.innerHTML = "";
   for (const l of lineups) {
     const chip = document.createElement("div");
-    chip.className = "chip" + (!isGroupView && l.id === state.selectedLineupId ? " active" : "");
-    chip.innerHTML = `${l.spotName}<br><span class="muted">${GRENADE_LABELS[l.grenadeType] || l.grenadeType}</span>`;
-    chip.onclick = () => {
-      state.selectedInstantSpot = null;
-      state.selectedLineupId = l.id;
-      renderLineups();
-    };
+    const checked = state.selectedIds.has(l.id);
+    chip.className =
+      "chip" +
+      (!isGroupView && !state.selectionMode && l.id === state.selectedLineupId ? " active" : "") +
+      ` ${sideClassName(l.side)}`;
+    const checkbox = state.selectionMode ? `<input type="checkbox" class="chip-select" ${checked ? "checked" : ""}> ` : "";
+    chip.innerHTML = `${checkbox}${l.spotName}<br><span class="muted">${grenadeIconBadge(l.grenadeType)}</span>`;
+    if (state.selectionMode) {
+      chip.classList.toggle("active", checked);
+      chip.onclick = () => {
+        if (state.selectedIds.has(l.id)) state.selectedIds.delete(l.id);
+        else state.selectedIds.add(l.id);
+        renderLineups();
+      };
+    } else {
+      chip.onclick = () => {
+        state.selectedInstantSpot = null;
+        state.selectedLineupId = l.id;
+        renderLineups();
+      };
+    }
     strip.appendChild(chip);
   }
   for (const g of groups) {
     const chip = document.createElement("div");
-    chip.className = "chip" + (isGroupView && groupKey(g) === state.selectedInstantSpot ? " active" : "");
-    const sideLabel = state.filters.side === null ? ` (${g.side})` : "";
+    chip.className =
+      "chip" +
+      (isGroupView && groupKey(g) === state.selectedInstantSpot ? " active" : "") +
+      ` ${sideClassName(g.side)}`;
     chip.innerHTML =
-      `${g.spotName}${sideLabel}<br><span class="muted">${GRENADE_LABELS[g.grenadeType] || g.grenadeType} — Instant · ${g.lineups.length}</span>`;
+      `${g.spotName}<br><span class="muted">${grenadeIconBadge(g.grenadeType)} — Instant · ${g.lineups.length}</span>`;
     chip.onclick = () => {
       state.selectedInstantSpot = groupKey(g);
       renderLineups();
     };
     strip.appendChild(chip);
   }
+
+  updateSelectionButtons();
 
   if (!isGroupView) syncActiveLineup();
 
@@ -357,11 +543,15 @@ function renderStandardDetail(selected, generation) {
   const detailNotes = document.getElementById("detailNotes");
   const detailThrowLabel = document.getElementById("detailThrowLabel");
 
+  detailThrowLabel.classList.remove("side-ct", "side-t");
   if (selected) {
     detailSpotName.textContent = selected.spotName;
     detailNotes.textContent = selected.notes || "";
     if (selected.throwLabel) {
-      detailThrowLabel.textContent = selected.throwLabel;
+      const wp = getFirstWaypoint(selected);
+      const clickIcon = wp?.clickType ? `<span class="option-icon">${mouseIconSvg(wp.clickType)}</span>` : "";
+      detailThrowLabel.innerHTML = `${clickIcon}${selected.throwLabel}`;
+      detailThrowLabel.classList.add(sideClassName(selected.side));
       detailThrowLabel.classList.remove("hidden");
     } else {
       detailThrowLabel.classList.add("hidden");
@@ -408,6 +598,9 @@ function currentActiveLineupId() {
 }
 
 function syncActiveLineup() {
+  // set_active_lineup n'existe que sur l'Api complète (utilisé par F6, un hotkey
+  // global absent du build consultation-only, voir main_consultation.py).
+  if (state.mode !== "full") return;
   const id = currentActiveLineupId();
   if (id === lastSyncedLineupId) return;
   lastSyncedLineupId = id;
@@ -417,8 +610,10 @@ function syncActiveLineup() {
 async function renderInstantGroupView(group, generation) {
   if (!group) return;
 
-  document.getElementById("instantGroupTitle").textContent =
-    state.filters.side === null ? `${group.spotName} (${group.side})` : group.spotName;
+  document.getElementById("instantGroupTitle").textContent = group.spotName;
+  const groupBar = document.getElementById("instantGroupBar");
+  groupBar.classList.remove("side-ct", "side-t");
+  groupBar.classList.add(sideClassName(group.side));
 
   const map = state.maps.find((m) => m.id === state.filters.mapId);
   const radarInset = document.getElementById("instantGroupRadarInset");
@@ -433,8 +628,8 @@ async function renderInstantGroupView(group, generation) {
     .sort((a, b) => a.spawn.index - b.spawn.index);
 
   const doneCount = instantGroupEntries.filter((e) => e.lineup).length;
-  document.getElementById("instantGroupSubtitle").textContent =
-    `${GRENADE_LABELS[group.grenadeType] || group.grenadeType} — ${doneCount}/${instantGroupEntries.length} spawn${instantGroupEntries.length > 1 ? "s" : ""} capturés`;
+  document.getElementById("instantGroupSubtitle").innerHTML =
+    `${grenadeIconSvg(group.grenadeType)} — ${doneCount}/${instantGroupEntries.length} spawn${instantGroupEntries.length > 1 ? "s" : ""} capturés`;
 
   if (!instantGroupEntries.some((e) => e.spawn.id === instantGroupSelectedSpawnId)) {
     instantGroupSelectedSpawnId = (instantGroupEntries.find((e) => e.lineup) || instantGroupEntries[0])?.spawn.id ?? null;
@@ -457,6 +652,7 @@ async function renderInstantGroupView(group, generation) {
         label: String(e.spawn.index),
         done: !!e.lineup,
         selected: e.spawn.id === instantGroupSelectedSpawnId,
+        side: group.side,
         onClick: () => selectSpawnInGroup(e.spawn.id),
       };
     });
@@ -491,15 +687,18 @@ async function renderInstantShotPreview(generation) {
     label.classList.add("hidden");
   }
 
+  const wp = entry?.lineup ? getFirstWaypoint(entry.lineup) : null;
+
   const throwLabel = document.getElementById("instantThrowLabel");
+  throwLabel.classList.remove("side-ct", "side-t");
   if (entry?.lineup?.throwLabel) {
-    throwLabel.textContent = entry.lineup.throwLabel;
+    const clickIcon = wp?.clickType ? `<span class="option-icon">${mouseIconSvg(wp.clickType)}</span>` : "";
+    throwLabel.innerHTML = `${clickIcon}${entry.lineup.throwLabel}`;
+    throwLabel.classList.add(sideClassName(entry.lineup.side));
     throwLabel.classList.remove("hidden");
   } else {
     throwLabel.classList.add("hidden");
   }
-
-  const wp = entry?.lineup ? getFirstWaypoint(entry.lineup) : null;
   const [dataUrl, zoomUrl] = await Promise.all([
     wp?.screenshotRef ? api().get_screenshot_detail_data_url(wp.screenshotRef) : null,
     wp?.screenshotZoomRef ? api().get_screenshot_data_url(wp.screenshotZoomRef) : null,
@@ -525,12 +724,21 @@ async function renderInstantShotPreview(generation) {
   }
 
   editBtn.classList.toggle("hidden", !entry?.lineup);
+  document.getElementById("btnDeleteSpawnLineup").classList.toggle("hidden", !entry?.lineup);
 }
 
 function openSelectedSpawnLineup() {
   const entry = instantGroupEntries.find((e) => e.spawn.id === instantGroupSelectedSpawnId);
   if (!entry?.lineup) return;
   openEditLineupView(entry.lineup);
+}
+
+async function deleteSpawnLineup() {
+  const entry = instantGroupEntries.find((e) => e.spawn.id === instantGroupSelectedSpawnId);
+  if (!entry?.lineup) return;
+  if (!confirm(`Supprimer le lineup capturé pour le spawn ${entry.spawn.index} ?`)) return;
+  await api().delete_lineup(entry.lineup.id);
+  await refreshLineups();
 }
 
 // --- Actions sur le lineup sélectionné (favori / édition / suppression) ---
@@ -541,8 +749,9 @@ function selectedLineup() {
 
 function updateFavoriteButton(lineup) {
   const btn = document.getElementById("btnToggleFavorite");
-  btn.textContent = lineup && lineup.favorite ? "★" : "☆";
-  btn.classList.toggle("active", !!(lineup && lineup.favorite));
+  const isFavorite = !!(lineup && lineup.favorite);
+  btn.innerHTML = TOOLBAR_ICONS[isFavorite ? "starFilled" : "star"];
+  btn.classList.toggle("active", isFavorite);
 }
 
 async function toggleFavorite() {
@@ -556,6 +765,7 @@ async function toggleFavorite() {
 // pré-remplit tous les champs depuis le lineup sélectionné, la sauvegarde met à
 // jour ce lineup au lieu d'en créer un nouveau (voir armCapture/saveCapture).
 async function openEditLineupView(lineup) {
+  if (state.mode === "consultation") return; // voir openCreateView
   lineup = lineup || selectedLineup();
   if (!lineup) return;
   editingLineupId = lineup.id;
@@ -566,14 +776,15 @@ async function openEditLineupView(lineup) {
   document.getElementById("createViewTitle").textContent = "Éditer lineup";
 
   document.getElementById("form-mapId").value = lineup.mapId;
-  document.getElementById("form-side").value = lineup.side;
-  document.getElementById("form-grenadeType").value = lineup.grenadeType;
+  setFormSide(lineup.side);
+  setGrenadeTypeValue(lineup.grenadeType);
   document.getElementById("form-category").value = lineup.category;
   document.getElementById("form-spotName").value = lineup.spotName;
   document.getElementById("form-notes").value = lineup.notes || "";
   const wp = getFirstWaypoint(lineup);
   document.getElementById("form-movement").value = wp ? wp.movement : "stand";
-  document.getElementById("form-clickType").value = wp && wp.clickType ? wp.clickType : "left";
+  setClickTypeValue(wp && wp.clickType ? wp.clickType : "left");
+  document.getElementById("form-crouch").checked = wp ? wp.crouch : false;
 
   await api().start_edit_capture(lineup.id);
 
@@ -602,6 +813,72 @@ async function deleteLineup() {
   await refreshLineups();
 }
 
+async function deleteInstantGroup() {
+  const group = visibleInstantGroups().find((g) => groupKey(g) === state.selectedInstantSpot);
+  if (!group) return;
+  if (!confirm(`Supprimer tout le groupe "${group.spotName}" (${group.lineups.length} lineup(s) capturé(s)) ? Cette action est irréversible.`)) return;
+  await api().delete_instant_group(state.filters.mapId, group.side, group.spotName);
+  state.selectedInstantSpot = null;
+  await refreshLineups();
+}
+
+// --- Sélection multiple + import/export (voir CLAUDE.md, format .zip) ---
+
+function toggleSelectionMode() {
+  state.selectionMode = !state.selectionMode;
+  if (!state.selectionMode) state.selectedIds.clear();
+  const btn = document.getElementById("btnSelectionMode");
+  btn.innerHTML = TOOLBAR_ICONS[state.selectionMode ? "close" : "select"];
+  btn.classList.toggle("active", state.selectionMode);
+  renderLineups();
+}
+
+function updateSelectionButtons() {
+  const count = state.selectedIds.size;
+  const showSelectionButtons = state.selectionMode && count > 0;
+  document.getElementById("btnExportSelection").classList.toggle("hidden", !showSelectionButtons);
+  document.getElementById("btnDeleteSelection").classList.toggle("hidden", !showSelectionButtons);
+  document.getElementById("exportSelectionCount").textContent = count || "";
+  document.getElementById("deleteSelectionCount").textContent = count || "";
+}
+
+async function exportSelection() {
+  const result = await api().export_lineups([...state.selectedIds]);
+  if (result.status === "ok") {
+    toggleSelectionMode();
+  } else if (result.status !== "cancelled") {
+    alert(result.message || "Échec de l'export.");
+  }
+}
+
+async function exportLibrary() {
+  const result = await api().export_library();
+  if (result.status !== "ok" && result.status !== "cancelled") {
+    alert(result.message || "Échec de l'export.");
+  }
+}
+
+async function importLineups() {
+  const result = await api().import_lineups();
+  if (result.status === "cancelled") return;
+  if (result.status !== "ok") {
+    alert(result.message || "Échec de l'import.");
+    return;
+  }
+  await refreshLineups();
+  const warningsText = result.warnings.length ? `\n${result.warnings.length} avertissement(s).` : "";
+  alert(`${result.imported} lineup(s) importé(s), ${result.skipped} ignoré(s).${warningsText}`);
+}
+
+async function deleteSelection() {
+  const count = state.selectedIds.size;
+  if (!count) return;
+  if (!confirm(`Supprimer définitivement ${count} lineup(s) ? Cette action est irréversible.`)) return;
+  await api().delete_lineups([...state.selectedIds]);
+  toggleSelectionMode();
+  await refreshLineups();
+}
+
 function getFirstWaypoint(lineup) {
   return lineup?.waypoints?.[0] || null;
 }
@@ -620,9 +897,11 @@ async function updateBrowseRadar(map, selectedLineup, generation) {
   await setRadarImageSrc(img, map.radarImageRef);
   if (generation !== renderGeneration) return; // un rendu plus récent a démarré entre-temps
   inset.classList.remove("hidden");
+  marker.classList.remove("side-ct", "side-t");
   if (startWp) {
     const { leftPct, topPct } = worldToRadarPercent(map, startWp.position.x, startWp.position.y);
     setRadarMarker(marker, leftPct, topPct);
+    marker.classList.add(sideClassName(selectedLineup.side));
   } else {
     marker.classList.add("hidden");
   }
@@ -713,7 +992,8 @@ async function renderRadarFullscreenMarkers() {
     const leftPct = (cluster.leftPx / size) * 100;
     const topPct = (cluster.topPx / size) * 100;
     const btn = document.createElement("button");
-    btn.className = "radar-marker-icon";
+    const sameSide = cluster.items.every((l) => l.side === cluster.items[0].side);
+    btn.className = "radar-marker-icon" + (sameSide ? ` ${sideClassName(cluster.items[0].side)}` : "");
     btn.style.left = `${leftPct}%`;
     btn.style.top = `${topPct}%`;
     btn.innerHTML = clusterIconSvg(cluster.items.map((l) => l.grenadeType));
@@ -887,6 +1167,10 @@ async function updateDetailScreenshot(selectedLineup, generation) {
 // --- Vue "Nouveau lineup" ---
 
 function openCreateView() {
+  // Garde défensive — le bouton qui déclenche ceci est masqué en mode
+  // consultation (voir style.css .consultation-mode), ce return couvre le cas
+  // où il resterait atteignable autrement.
+  if (state.mode === "consultation") return;
   document.getElementById("view-browse").classList.add("hidden");
   document.getElementById("view-create").classList.remove("hidden");
   // Le panneau de filtres flotte par-dessus consultation/radar, mais pas la création
@@ -895,7 +1179,8 @@ function openCreateView() {
   editingLineupId = null;
   document.getElementById("createViewTitle").textContent = "Nouveau lineup";
   if (state.filters.mapId) document.getElementById("form-mapId").value = state.filters.mapId;
-  document.getElementById("form-side").value = state.filters.side || "CT";
+  setFormSide(state.filters.side || "CT");
+  document.getElementById("form-crouch").checked = false;
   document.getElementById("btnSaveCapture").disabled = true;
   updateCaptureScreenshot(null);
   toggleInstantPanel();
@@ -980,6 +1265,7 @@ function renderInstantPickerMarkers() {
   if (!hasRadarCalibration(map)) return;
 
   const wrap = document.getElementById("instantPickerWrap");
+  const side = document.getElementById("form-side").value;
   const points = instantSpawnsCache.map((sp) => {
     const { leftPct, topPct } = worldToRadarPercent(map, sp.position.x, sp.position.y);
     return {
@@ -988,6 +1274,7 @@ function renderInstantPickerMarkers() {
       label: String(sp.index),
       done: instantDoneIdsCache.has(sp.id),
       selected: sp.id === instantSelectedSpawnId,
+      side,
       onClick: () => selectInstantSpawn(sp.id),
     };
   });
@@ -1002,6 +1289,7 @@ function selectInstantSpawn(spawnId) {
 }
 
 async function teleportToSelectedSpawn() {
+  if (state.mode === "consultation") return; // voir openCreateView
   if (!instantSelectedSpawnId) return;
   const fixBtn = document.getElementById("btnFixMapMismatch");
   fixBtn.classList.add("hidden");
@@ -1029,6 +1317,7 @@ async function fixMapMismatch(mapId) {
 }
 
 async function closeCreateView() {
+  if (state.mode === "consultation") return; // voir openCreateView
   await api().cancel_capture();
   editingLineupId = null;
   document.getElementById("view-create").classList.add("hidden");
@@ -1053,6 +1342,7 @@ function updateSaveButtonState() {
 // fait automatiquement à l'ouverture de la vue et à chaque changement de champ
 // pertinent (voir les écouteurs "change"/"input" dans initInner).
 async function armCapture() {
+  if (state.mode === "consultation") return; // voir openCreateView
   const category = document.getElementById("form-category").value;
   const mapId = document.getElementById("form-mapId").value;
   const side = document.getElementById("form-side").value;
@@ -1061,6 +1351,7 @@ async function armCapture() {
   const notes = document.getElementById("form-notes").value;
   const movement = document.getElementById("form-movement").value;
   const clickType = document.getElementById("form-clickType").value;
+  const crouch = document.getElementById("form-crouch").checked;
   const spawnPoint = category === "instant" ? instantSelectedSpawnId : null;
 
   if (editingLineupId) {
@@ -1072,16 +1363,17 @@ async function armCapture() {
     // (voir Api.update_capture_fields côté Python) — il faut alors resynchroniser
     // tout le formulaire avec ses propres valeurs plutôt que la sélection actuelle.
     const draft = await api().update_capture_fields(
-      mapId, side, grenadeType, spotName, notes, movement, clickType, category, spawnPoint
+      mapId, side, grenadeType, spotName, notes, movement, clickType, crouch, category, spawnPoint
     );
 
     if (draft.editingLineupId !== editingLineupId) {
       editingLineupId = draft.editingLineupId;
-      document.getElementById("form-grenadeType").value = draft.grenadeType;
+      setGrenadeTypeValue(draft.grenadeType);
       document.getElementById("form-spotName").value = draft.spotName;
       document.getElementById("form-notes").value = draft.notes || "";
       document.getElementById("form-movement").value = draft.movement;
-      document.getElementById("form-clickType").value = draft.clickType;
+      setClickTypeValue(draft.clickType);
+      document.getElementById("form-crouch").checked = draft.crouch;
       instantSelectedSpawnId = draft.spawnPoint;
       document.getElementById("btnTeleportSpawn").disabled = !instantSelectedSpawnId;
       renderInstantPickerMarkers();
@@ -1096,13 +1388,18 @@ async function armCapture() {
     return;
   }
 
-  // start_capture crée un nouveau brouillon (sans waypoint) à chaque appel — un champ
-  // modifié après une capture F9 invalide donc ce waypoint côté serveur, il faut
-  // recapturer (voir CaptureSession.start dans capture.py).
-  captureHasWaypoint = false;
-  await api().start_capture(mapId, side, grenadeType, spotName, notes, movement, clickType, category, spawnPoint);
+  // start_capture est appelé à l'ouverture ET à chaque champ modifié (pas de bouton
+  // "Démarrer" séparé) — il conserve le waypoint déjà capturé côté serveur sauf si
+  // la carte/le camp/le spawn change (voir CaptureSession.start dans capture.py),
+  // donc on resynchronise l'état local sur le draft retourné plutôt que de tout
+  // invalider par défaut.
+  const draft = await api().start_capture(mapId, side, grenadeType, spotName, notes, movement, clickType, crouch, category, spawnPoint);
+  captureHasWaypoint = !!draft.waypoint;
   updateSaveButtonState();
-  document.getElementById("captureStatusLine").textContent = "Prêt — vise puis appuie sur F9 en jeu pour capturer.";
+  document.getElementById("captureStatusLine").textContent = draft.waypoint
+    ? `Point conservé — vise puis F9 en jeu pour le recapturer si besoin.`
+    : "Prêt — vise puis appuie sur F9 en jeu pour capturer.";
+  await updateCaptureScreenshot(draft.waypoint ? draft.waypoint.screenshotRef : null);
 }
 
 // Appelée par Python (evaluate_js) après un appui sur F9 en jeu
@@ -1139,6 +1436,7 @@ async function updateCaptureScreenshot(screenshotRef) {
 window.onCaptureUpdated = onCaptureUpdated;
 
 async function saveCapture() {
+  if (state.mode === "consultation") return; // voir openCreateView
   const result = await api().save_capture();
   if (result.status !== "saved") {
     document.getElementById("captureStatusLine").textContent = result.message || "Erreur lors de la sauvegarde.";
@@ -1172,6 +1470,7 @@ async function saveCapture() {
 }
 
 async function toggleHud() {
+  if (state.mode === "consultation") return; // voir openCreateView
   const btn = document.getElementById("btnToggleHud");
   const status = document.getElementById("hudToggleStatusLine");
   btn.disabled = true;
@@ -1180,10 +1479,12 @@ async function toggleHud() {
   status.classList.remove("hidden");
 
   if (result.status === "hidden") {
-    btn.textContent = "Afficher le HUD";
+    btn.innerHTML = TOOLBAR_ICONS.eyeOff;
+    btn.title = "Afficher le HUD";
     status.textContent = "HUD masqué — le délai avant que ce soit visible en jeu varie.";
   } else if (result.status === "shown") {
-    btn.textContent = "Masquer le HUD (test)";
+    btn.innerHTML = TOOLBAR_ICONS.eye;
+    btn.title = "Masquer le HUD (test)";
     status.textContent = "HUD restauré.";
   } else {
     status.textContent = result.message || "Erreur.";

@@ -3,6 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <title>CS2 Nade Studio</title>
+<!-- SlimSelect (vendored, voir vendor/) : remplace juste le rendu visuel de deux
+     <select> natifs (type de grenade, type de clic) pour pouvoir mettre une icône
+     dans chaque option — la balise <select> d'origine reste la source de vérité
+     (valeur, comportement de formulaire), voir populateIconSelects() dans main.js. -->
+<link rel="stylesheet" href="vendor/slimselect.css">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -44,7 +49,7 @@
   <div class="browse-layout">
   <div class="browse-foreground">
     <div class="toolbar">
-      <button class="pill" onclick="openCreateView()">+ Nouveau lineup</button>
+      <button class="pill icon-btn" id="btnNewLineup" onclick="openCreateView()" title="Nouveau lineup" aria-label="Nouveau lineup"></button>
     </div>
 
     <!-- Titre (haut-gauche) + actions (haut-droite) : pastilles compactes plutôt
@@ -65,13 +70,15 @@
         </div>
         <span class="badge hidden" id="instantThrowLabel"></span>
         <span class="badge">Instant</span>
+        <button class="pill icon-btn" id="btnDeleteInstantGroup" onclick="deleteInstantGroup()" title="Supprimer le groupe" aria-label="Supprimer le groupe"></button>
       </div>
 
       <div class="detail-bar" id="detailActions" style="gap:8px;">
-        <button class="pill" id="btnToggleFavorite" onclick="toggleFavorite()">☆</button>
-        <button class="pill" id="btnEditLineup" onclick="openEditLineupView()">Éditer</button>
-        <button class="pill" id="btnDeleteLineup" onclick="deleteLineup()">Supprimer</button>
-        <button class="pill hidden" id="btnOpenSpawnLineup" onclick="openSelectedSpawnLineup()">Éditer ce lineup</button>
+        <button class="pill icon-btn" id="btnToggleFavorite" onclick="toggleFavorite()" title="Favori" aria-label="Marquer comme favori"></button>
+        <button class="pill icon-btn" id="btnEditLineup" onclick="openEditLineupView()" title="Éditer" aria-label="Éditer"></button>
+        <button class="pill icon-btn" id="btnDeleteLineup" onclick="deleteLineup()" title="Supprimer" aria-label="Supprimer"></button>
+        <button class="pill icon-btn hidden" id="btnOpenSpawnLineup" onclick="openSelectedSpawnLineup()" title="Éditer ce lineup" aria-label="Éditer ce lineup"></button>
+        <button class="pill icon-btn hidden" id="btnDeleteSpawnLineup" onclick="deleteSpawnLineup()" title="Supprimer ce lineup" aria-label="Supprimer ce lineup"></button>
       </div>
     </div>
 
@@ -106,19 +113,26 @@
        ramène ici à la fermeture (openRadarFullscreen/closeRadarFullscreen). Reste un
        simple frère flex ("push", pas overlay) dans la vue où il se trouve à l'instant. -->
   <div id="lineupPanelWrap" class="side-panel-wrap open">
-    <button class="pill" id="btnToggleLineupPanel" onclick="toggleLineupPanel()" title="Filtres &amp; lineups">☰</button>
+    <button class="pill icon-btn" id="btnToggleLineupPanel" onclick="toggleLineupPanel()" title="Filtres &amp; lineups" aria-label="Filtres &amp; lineups"></button>
     <aside id="lineupPanel" class="side-panel">
       <div class="side-panel-inner">
         <div class="side-panel-filters">
           <select id="mapSelect"></select>
           <span class="server-map-badge hidden" id="serverMapBadge"></span>
           <div style="display:flex;gap:4px;">
-            <button class="pill" id="side-CT" onclick="toggleSide('CT')">CT</button>
-            <button class="pill" id="side-T" onclick="toggleSide('T')">T</button>
+            <button class="pill icon-btn side-ct" id="side-CT" onclick="toggleSide('CT')" title="Camp CT" aria-label="Camp CT"></button>
+            <button class="pill icon-btn side-t" id="side-T" onclick="toggleSide('T')" title="Camp T" aria-label="Camp T"></button>
           </div>
           <input type="text" id="searchInput" placeholder="Rechercher un spot, ex: Palace smoke" oninput="onSearchInput()">
           <div class="pill-row" id="categoryPills"></div>
           <button class="pill" id="instantOnlyToggle" onclick="toggleInstantOnlyFilter()">Instant uniquement</button>
+          <div class="pill-row">
+            <button class="pill icon-btn" id="btnSelectionMode" onclick="toggleSelectionMode()" title="Sélection multiple" aria-label="Sélection multiple"></button>
+            <button class="pill icon-btn hidden" id="btnExportSelection" onclick="exportSelection()" title="Exporter la sélection" aria-label="Exporter la sélection"><span class="count-badge" id="exportSelectionCount"></span></button>
+            <button class="pill icon-btn hidden" id="btnDeleteSelection" onclick="deleteSelection()" title="Supprimer la sélection" aria-label="Supprimer la sélection"><span class="count-badge" id="deleteSelectionCount"></span></button>
+            <button class="pill icon-btn" id="btnExportLibrary" onclick="exportLibrary()" title="Exporter toute la bibliothèque" aria-label="Exporter toute la bibliothèque"></button>
+            <button class="pill icon-btn" id="btnImportLineups" onclick="importLineups()" title="Importer des lineups" aria-label="Importer des lineups"></button>
+          </div>
         </div>
 
         <p class="card-label" id="stripLabel">Autres lineups</p>
@@ -138,7 +152,7 @@
      plutôt qu'en toolbar de flux, pour laisser le radar occuper le reste de l'espace. -->
 <section id="view-radar-fullscreen" class="panel hidden full-bleed">
   <div class="radar-fullscreen-topbar">
-    <button class="pill" onclick="closeRadarFullscreen()">← Retour</button>
+    <button class="pill icon-btn" id="btnCloseRadarFullscreen" onclick="closeRadarFullscreen()" title="Retour" aria-label="Retour"></button>
     <p style="font-size:15px;font-weight:500;margin:0;" id="radarFullscreenTitle"></p>
   </div>
   <!-- Le panneau de filtres est déplacé ici (second enfant flex) par
@@ -157,7 +171,7 @@
 <section id="view-create" class="panel hidden">
   <div class="toolbar">
     <p style="font-size:15px;font-weight:500;margin:0;" id="createViewTitle">Nouveau lineup</p>
-    <button class="pill" style="margin-left:auto;" onclick="closeCreateView()">Annuler</button>
+    <button class="pill icon-btn" id="btnCancelCreate" style="margin-left:auto;" onclick="closeCreateView()" title="Annuler" aria-label="Annuler"></button>
   </div>
 
   <div class="field-row">
@@ -167,10 +181,11 @@
     </div>
     <div class="form-row">
       <label>Camp</label>
-      <select id="form-side">
-        <option value="CT">CT</option>
-        <option value="T">T</option>
-      </select>
+      <div style="display:flex;gap:4px;">
+        <input type="hidden" id="form-side" value="CT">
+        <button type="button" class="pill icon-btn side-ct" id="form-side-CT" onclick="selectFormSide('CT')" title="Camp CT" aria-label="Camp CT"></button>
+        <button type="button" class="pill icon-btn side-t" id="form-side-T" onclick="selectFormSide('T')" title="Camp T" aria-label="Camp T"></button>
+      </div>
     </div>
     <div class="form-row">
       <label>Type de grenade</label>
@@ -192,6 +207,10 @@
         <option value="wjump">W+Jump</option>
         <option value="walkrunjump">Walk+Run+Jump</option>
       </select>
+    </div>
+    <div class="form-row">
+      <label>Accroupi</label>
+      <input type="checkbox" id="form-crouch">
     </div>
     <div class="form-row">
       <label>Clic</label>
@@ -243,17 +262,18 @@
       </div>
       <div class="actions-row">
         <div class="hidden" id="teleportActionsRow">
-          <button id="btnTeleportSpawn" onclick="teleportToSelectedSpawn()" disabled>Téléporter à ce spawn</button>
-          <button class="hidden" id="btnFixMapMismatch">Changer de map</button>
+          <button class="pill icon-btn" id="btnTeleportSpawn" onclick="teleportToSelectedSpawn()" disabled title="Téléporter à ce spawn">Téléporter</button>
+          <button class="pill icon-btn hidden" id="btnFixMapMismatch" title="Changer de map">Changer de map</button>
         </div>
-        <button id="btnSaveCapture" onclick="saveCapture()" disabled>Sauvegarder</button>
-        <button id="btnToggleHud" onclick="toggleHud()">Masquer le HUD (test)</button>
+        <button class="pill icon-btn" id="btnSaveCapture" onclick="saveCapture()" disabled title="Sauvegarder" aria-label="Sauvegarder"></button>
+        <button class="pill icon-btn" id="btnToggleHud" onclick="toggleHud()" title="Masquer le HUD (test)" aria-label="Masquer le HUD (test)"></button>
       </div>
     </div>
   </div>
 
 </section>
 
+<script src="vendor/slimselect.js"></script>
 <script src="logic.js"></script>
 <script src="main.js"></script>
 </body>

@@ -11,6 +11,31 @@
   --text-secondary: #a0a4ad;
   --text-muted: #6b6f78;
   --radius: 8px;
+
+  /* Couleurs de camp CS2 — reprises telles quelles des vrais points radar CT/T
+     du jeu (voir cs2/panorama/images/icons/ui/map_{ct,t}_onmap.svg), pas un
+     choix arbitraire, pour rester immédiatement reconnaissables. */
+  --ct-color: #47c8f3;
+  --ct-bg: rgba(71, 200, 243, 0.14);
+  --ct-border: rgba(71, 200, 243, 0.55);
+  --t-color: #ca9a2c;
+  --t-bg: rgba(202, 154, 44, 0.14);
+  --t-border: rgba(202, 154, 44, 0.55);
+
+  /* Thème SlimSelect (voir vendor/) : sur :root plutôt que .ss-main — sa liste
+     déroulante ouverte est ajoutée ailleurs dans le DOM (`contentLocation:
+     document.body`), donc hors de portée d'une variable posée seulement sur
+     .ss-main. */
+  --ss-primary-color: var(--text-accent);
+  --ss-bg-color: var(--surface-2);
+  --ss-font-color: var(--text-primary);
+  --ss-placeholder-color: var(--text-muted);
+  --ss-border-color: var(--border);
+  --ss-highlight-color: var(--bg-accent);
+  --ss-border-radius: var(--radius);
+  --ss-main-height: 30px;
+  --ss-option-height: 30px;
+  --ss-spacing-l: 6px;
 }
 
 body {
@@ -53,6 +78,21 @@ button.pill.active {
   background: var(--bg-accent);
   color: var(--text-accent);
   border-color: var(--border-accent);
+}
+
+/* Boutons de camp (filtre + formulaire) : priment sur .pill.active générique
+   ci-dessus — bleu CT / or T au lieu de l'orange générique, pour pouvoir
+   distinguer les deux camps actifs d'un coup d'œil. */
+button.pill.side-ct.active {
+  background: var(--ct-bg);
+  color: var(--ct-color);
+  border-color: var(--ct-border);
+}
+
+button.pill.side-t.active {
+  background: var(--t-bg);
+  color: var(--t-color);
+  border-color: var(--t-border);
 }
 
 button[disabled] {
@@ -277,6 +317,17 @@ html {
 .radar-marker-icon:hover {
   transform: scale(1.3);
   z-index: 5;
+}
+
+/* Contour du marqueur : couleur du camp quand tous les lineups regroupés à cet
+   endroit partagent le même camp (voir renderRadarFullscreenMarkers) — sinon
+   contour neutre par défaut ci-dessus, pour ne pas induire en erreur. */
+.radar-marker-icon.side-ct {
+  border-color: var(--ct-color);
+}
+
+.radar-marker-icon.side-t {
+  border-color: var(--t-color);
 }
 
 #instantSpawnPanel {
@@ -528,6 +579,16 @@ html {
   pointer-events: none;
 }
 
+/* Point radar du lineup affiché : même couleur que le point radar CT/T du jeu
+   lui-même (voir --ct-color/--t-color), plutôt qu'une teinte orange fixe. */
+.radar-marker.side-ct {
+  background: var(--ct-color);
+}
+
+.radar-marker.side-t {
+  background: var(--t-color);
+}
+
 .card-label {
   font-size: 13px;
   color: var(--text-secondary);
@@ -563,11 +624,68 @@ html {
 }
 
 .badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   background: var(--bg-accent);
   color: var(--text-accent);
   font-size: 12px;
   padding: 4px 12px;
   border-radius: var(--radius);
+}
+
+/* Badge de déplacement au lancer (#detailThrowLabel/#instantThrowLabel) : teinté
+   selon le camp du lineup affiché plutôt que l'orange générique ci-dessus. */
+.badge.side-ct {
+  background: var(--ct-bg);
+  color: var(--ct-color);
+}
+
+.badge.side-t {
+  background: var(--t-bg);
+  color: var(--t-color);
+}
+
+/* Barre de titre de la vue "spawn instant" (#instantGroupBar) : même teinte
+   quand tous les camps sont mélangés à l'écran (voir renderInstantGroupView). */
+.detail-bar.side-ct {
+  border-color: var(--ct-border);
+  background: linear-gradient(0deg, var(--ct-bg), var(--ct-bg)), var(--surface-2);
+}
+
+.detail-bar.side-t {
+  border-color: var(--t-border);
+  background: linear-gradient(0deg, var(--t-bg), var(--t-bg)), var(--surface-2);
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
+
+/* Taille uniforme pour toutes les icônes injectées en SVG brut (CS2 officielles
+   ou Lucide) — les fichiers sources ont des tailles natives très différentes
+   (ex. la silhouette smoke est haute et fine, l'emblème CT/T est un cercle
+   256x256), le SVG les recentre proprement dans cette boîte sans déformation. */
+.icon-btn svg,
+.chip .muted svg,
+.option-icon svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+/* Emblèmes CT/T : un peu plus grands, plus détaillés que les icônes de grenade. */
+.side-ct svg,
+.side-t svg {
+  width: 18px;
+  height: 18px;
+}
+
+.count-badge {
+  font-size: 10px;
 }
 
 .server-map-badge {
@@ -578,6 +696,19 @@ html {
 
 .server-map-badge.warn {
   color: #f87171;
+}
+
+/* Build consultation-only (voir main_consultation.py) — masque les contrôles
+   capture/plugin, sans dupliquer index.html/main.js pour l'app complète. */
+/* #btnDeleteSpawnLineup n'est pas ici : deleteSpawnLineup() n'appelle que
+   delete_lineup (BrowseApi), utilisable normalement sur une bibliothèque
+   importée — voir openSelectedSpawnLineup/openEditLineupView pour la
+   distinction avec les contrôles d'édition ci-dessous. */
+.consultation-mode #btnNewLineup,
+.consultation-mode #btnEditLineup,
+.consultation-mode #btnOpenSpawnLineup,
+.consultation-mode #serverMapBadge {
+  display: none !important;
 }
 
 .strip {
@@ -604,8 +735,61 @@ html {
   border: 2px solid var(--border-accent);
 }
 
+/* Camp du lineup/groupe de cette ligne (voir renderLineups) : une bande de
+   couleur sur le bord gauche plutôt qu'un badge ou un texte "(CT)"/"(T)"
+   séparé — un liseré plutôt que toute la bordure pour ne jamais entrer en
+   conflit avec le contour orange de sélection (.chip.active) ci-dessus, qui
+   doit rester le seul indicateur de "ligne sélectionnée". */
+.chip.side-ct {
+  border-left: 3px solid var(--ct-color);
+}
+
+.chip.side-t {
+  border-left: 3px solid var(--t-color);
+}
+
 .chip .muted {
   color: var(--text-secondary);
+}
+
+.chip .muted svg {
+  vertical-align: middle;
+}
+
+/* Pastille de fond derrière l'icône de grenade : sans elle, les icônes très
+   claires (flash) "brillaient" bien plus que les très sombres (smoke) sur le
+   même fond de ligne, donnant l'impression trompeuse que l'une était allumée/
+   sélectionnée et l'autre non (bug signalé) — un disque de la teinte du type,
+   à faible opacité, uniformise le poids visuel perçu quelle que soit la
+   luminosité propre de l'icône. */
+.icon-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  vertical-align: middle;
+}
+
+.icon-badge.type-smoke {
+  background: rgba(139, 147, 160, 0.2);
+}
+
+.icon-badge.type-flash {
+  background: rgba(217, 207, 168, 0.22);
+}
+
+.icon-badge.type-molotov {
+  background: rgba(242, 84, 27, 0.18);
+}
+
+.icon-badge.type-he {
+  background: rgba(122, 74, 43, 0.28);
+}
+
+.icon-badge.type-decoy {
+  background: rgba(201, 164, 104, 0.2);
 }
 
 /* Label à côté du champ plutôt qu'au-dessus : évite qu'une rangée de 3 champs
@@ -795,5 +979,56 @@ html {
 
 .instant-marker.static {
   cursor: default;
+}
+
+/* Couleur de camp du spawn/groupe affiché (voir renderSpawnMarkers) — remplace
+   l'orange générique ci-dessus sur les trois états (contour, "fait", sélectionné). */
+.instant-marker.side-ct {
+  border-color: var(--ct-color);
+}
+
+.instant-marker.side-t {
+  border-color: var(--t-color);
+}
+
+.instant-marker.side-ct.done,
+.instant-marker.side-ct.selected {
+  background: var(--ct-color);
+}
+
+.instant-marker.side-t.done,
+.instant-marker.side-t.selected {
+  background: var(--t-color);
+}
+
+.instant-marker.side-ct.selected {
+  box-shadow: 0 0 0 3px var(--ct-bg);
+}
+
+.instant-marker.side-t.selected {
+  box-shadow: 0 0 0 3px var(--t-bg);
+}
+
+/* <select> avec icône dans chaque option (type de grenade, type de clic) — la
+   nouvelle API CSS "customizable select" (appearance:base-select) existe mais
+   reste derrière un drapeau expérimental non activé par défaut (vérifié en
+   conditions réelles) : on habille plutôt le <select> natif avec SlimSelect
+   (vendored, voir vendor/), qui garde la balise <select> d'origine comme seule
+   source de vérité et se contente d'en changer le rendu — voir
+   populateIconSelects() dans main.js. Thème via les variables --ss-* de
+   SlimSelect, alignées sur les couleurs déjà utilisées ailleurs dans l'appli. */
+.option-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+
+.option-icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
