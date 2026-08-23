@@ -284,5 +284,845 @@
       "y": 2153.16,
       "z": 132.07718
     }
+  },
+  {
+    "id": "1206fce5-7a9e-4d34-8d7c-5933277045d7",
+    "mapId": "ancient",
+    "side": "T",
+    "index": 1,
+    "position": { "x": -328, "y": -2288, "z": -156 }
+  },
+  {
+    "id": "247176ca-20ad-45b6-93d1-1276d6affb80",
+    "mapId": "ancient",
+    "side": "T",
+    "index": 2,
+    "position": { "x": -456, "y": -2288, "z": -156 }
+  },
+  {
+    "id": "59657e53-195b-4b61-a7e3-4a3a47af8ebe",
+    "mapId": "ancient",
+    "side": "T",
+    "index": 3,
+    "position": { "x": -584, "y": -2288, "z": -156 }
+  },
+  {
+    "id": "e5667f54-18de-4beb-9068-eb98052944ec",
+    "mapId": "ancient",
+    "side": "T",
+    "index": 4,
+    "position": { "x": -392, "y": -2224, "z": -156 }
+  },
+  {
+    "id": "fdfe69de-50d2-427c-b2b7-c74a06fa378f",
+    "mapId": "ancient",
+    "side": "T",
+    "index": 5,
+    "position": { "x": -520, "y": -2224, "z": -156 }
+  },
+  {
+    "id": "e3116d8f-73a6-432a-b885-3bf38d0fc822",
+    "mapId": "ancient",
+    "side": "CT",
+    "index": 1,
+    "position": { "x": -192, "y": 1696, "z": 32 }
+  },
+  {
+    "id": "bebceab1-4301-49f3-8250-ea838a00daab",
+    "mapId": "ancient",
+    "side": "CT",
+    "index": 2,
+    "position": { "x": -256, "y": 1728, "z": 32 }
+  },
+  {
+    "id": "6552b9ce-15b7-4e7f-a8f9-d8865225ea38",
+    "mapId": "ancient",
+    "side": "CT",
+    "index": 3,
+    "position": { "x": -352, "y": 1728, "z": 32 }
+  },
+  {
+    "id": "e573cb14-11d5-42b7-aac2-9e1960a89a22",
+    "mapId": "ancient",
+    "side": "CT",
+    "index": 4,
+    "position": { "x": -448, "y": 1728, "z": 32 }
+  },
+  {
+    "id": "a97469d2-2378-4a73-8d5a-e57bbeb9c1f7",
+    "mapId": "ancient",
+    "side": "CT",
+    "index": 5,
+    "position": { "x": -512, "y": 1696, "z": 32 }
+  },
+  {
+    "id": "750cfc5d-271b-48cd-aa5a-1d303db5a88a",
+    "mapId": "dust2",
+    "side": "CT",
+    "index": 1,
+    "position": { "x": 182.24991, "y": 2439.0117, "z": -110 }
+  },
+  {
+    "id": "2a469b5a-250b-496a-8274-89ab0d9ba4b7",
+    "mapId": "dust2",
+    "side": "CT",
+    "index": 2,
+    "position": { "x": 160.12274, "y": 2369.6763, "z": -110 }
+  },
+  {
+    "id": "a2f965a1-8645-4a52-969c-8db37e78b8fd",
+    "mapId": "dust2",
+    "side": "CT",
+    "index": 3,
+    "position": { "x": 258.1594, "y": 2480.5537, "z": -110 }
+  },
+  {
+    "id": "469c6bda-0fe8-4d77-93e7-519c0b764289",
+    "mapId": "dust2",
+    "side": "CT",
+    "index": 4,
+    "position": { "x": 334.36874, "y": 2433.7336, "z": -110 }
+  },
+  {
+    "id": "b512f2ab-a8d2-443d-b60a-ab87c567318c",
+    "mapId": "dust2",
+    "side": "CT",
+    "index": 5,
+    "position": { "x": 351.39212, "y": 2352.9424, "z": -110 }
+  },
+  {
+    "id": "30ef52d4-f482-49f0-9012-cf4631695b23",
+    "mapId": "dust2",
+    "side": "T",
+    "index": 1,
+    "position": { "x": -822.3652, "y": -795.6421, "z": 150.709 }
+  },
+  {
+    "id": "242d944f-87cc-42d4-b2e7-217723e784bc",
+    "mapId": "dust2",
+    "side": "T",
+    "index": 2,
+    "position": { "x": -857.50653, "y": -738.3613, "z": 150.709 }
+  },
+  {
+    "id": "7d97443e-f852-4ee0-9e47-55245f48c4da",
+    "mapId": "dust2",
+    "side": "T",
+    "index": 3,
+    "position": { "x": -760.66296, "y": -836.174, "z": 150.709 }
+  },
+  {
+    "id": "87606378-6ad7-4053-a859-d0d443c388d0",
+    "mapId": "dust2",
+    "side": "T",
+    "index": 4,
+    "position": { "x": -696.8446, "y": -806.6237, "z": 150.709 }
+  },
+  {
+    "id": "3a97a6e2-5552-45e4-ad2a-395f252560dd",
+    "mapId": "dust2",
+    "side": "T",
+    "index": 5,
+    "position": { "x": -657.27136, "y": -755.87964, "z": 150.709 }
+  },
+  {
+    "id": "11762c53-1e1d-4ba5-b266-a1bd74413b81",
+    "mapId": "dust2",
+    "side": "T",
+    "index": 6,
+    "position": { "x": -1141, "y": -808, "z": 150.709 }
+  },
+  {
+    "id": "842c75c8-cccd-4cfc-8244-a3b093642810",
+    "mapId": "dust2",
+    "side": "T",
+    "index": 7,
+    "position": { "x": -1181, "y": -754, "z": 150.709 }
+  },
+  {
+    "id": "1a7cf304-bc1a-4fb4-882a-9755ed32fc90",
+    "mapId": "dust2",
+    "side": "T",
+    "index": 8,
+    "position": { "x": -1076, "y": -843, "z": 150.709 }
+  },
+  {
+    "id": "c5636b44-b820-48b1-9c6c-ed19f1cde2d6",
+    "mapId": "dust2",
+    "side": "T",
+    "index": 9,
+    "position": { "x": -1015, "y": -808, "z": 150.709 }
+  },
+  {
+    "id": "f5589a8e-7b11-4bfd-810e-ca8ca3fdbe79",
+    "mapId": "dust2",
+    "side": "T",
+    "index": 10,
+    "position": { "x": -980, "y": -754, "z": 150.709 }
+  },
+  {
+    "id": "48d43317-8076-489f-b073-09de40b3f046",
+    "mapId": "dust2",
+    "side": "T",
+    "index": 11,
+    "position": { "x": -493, "y": -808, "z": 134.709 }
+  },
+  {
+    "id": "49d6301e-2489-447b-bd22-60c36ef38b5c",
+    "mapId": "dust2",
+    "side": "T",
+    "index": 12,
+    "position": { "x": -533, "y": -754, "z": 134.709 }
+  },
+  {
+    "id": "0dde79b9-6ab4-4902-a501-652d299a783b",
+    "mapId": "dust2",
+    "side": "T",
+    "index": 13,
+    "position": { "x": -428, "y": -843, "z": 134.709 }
+  },
+  {
+    "id": "a7e1f5df-380c-4642-a774-45df88490732",
+    "mapId": "dust2",
+    "side": "T",
+    "index": 14,
+    "position": { "x": -367, "y": -808, "z": 134.709 }
+  },
+  {
+    "id": "78dbd6b8-4e49-4722-bcce-626eb5db7cb5",
+    "mapId": "dust2",
+    "side": "T",
+    "index": 15,
+    "position": { "x": -332, "y": -754, "z": 134.709 }
+  },
+  {
+    "id": "7ee719dc-549d-45b6-ab0b-14787bd8d80c",
+    "mapId": "nuke",
+    "side": "CT",
+    "index": 1,
+    "position": { "x": 2504, "y": -344, "z": -335 }
+  },
+  {
+    "id": "bc1f34e2-e2da-455d-b629-72aad84f629f",
+    "mapId": "nuke",
+    "side": "CT",
+    "index": 2,
+    "position": { "x": 2552, "y": -424, "z": -335 }
+  },
+  {
+    "id": "b4f0e45c-0583-49d4-9fbe-493bcd192ff9",
+    "mapId": "nuke",
+    "side": "CT",
+    "index": 3,
+    "position": { "x": 2512, "y": -504, "z": -335 }
+  },
+  {
+    "id": "5806fb93-4c56-4a7c-a87b-bc88f7865e42",
+    "mapId": "nuke",
+    "side": "CT",
+    "index": 4,
+    "position": { "x": 2585, "y": -344, "z": -335 }
+  },
+  {
+    "id": "20d4b545-9ec8-4f3b-bf18-f9dab54794e1",
+    "mapId": "nuke",
+    "side": "CT",
+    "index": 5,
+    "position": { "x": 2584, "y": -504, "z": -335 }
+  },
+  {
+    "id": "63e99741-eea3-478a-9380-54f1754f881c",
+    "mapId": "nuke",
+    "side": "T",
+    "index": 1,
+    "position": { "x": -1808, "y": -1025, "z": -400.634 }
+  },
+  {
+    "id": "cccf5930-5634-40db-bd05-ba9f650e5d96",
+    "mapId": "nuke",
+    "side": "T",
+    "index": 2,
+    "position": { "x": -1947.01, "y": -965.11, "z": -400.634 }
+  },
+  {
+    "id": "439c4878-5cab-4a49-9aea-a2c15f048e83",
+    "mapId": "nuke",
+    "side": "T",
+    "index": 3,
+    "position": { "x": -1947.01, "y": -1102.11, "z": -400.634 }
+  },
+  {
+    "id": "c3f32a74-c1f7-429c-b651-8e1fb04d06cb",
+    "mapId": "nuke",
+    "side": "T",
+    "index": 4,
+    "position": { "x": -1878, "y": -980, "z": -400.634 }
+  },
+  {
+    "id": "e393d09d-1bb1-4202-8361-ce8b089c2550",
+    "mapId": "nuke",
+    "side": "T",
+    "index": 5,
+    "position": { "x": -1832, "y": -1160, "z": -400.634 }
+  },
+  {
+    "id": "8c98ec87-f058-48af-91e5-4a21ba67732b",
+    "mapId": "nuke",
+    "side": "T",
+    "index": 6,
+    "position": { "x": -1929, "y": -1025, "z": -400.634 }
+  },
+  {
+    "id": "6d10f226-9774-4c7c-8917-b0276781b9b9",
+    "mapId": "nuke",
+    "side": "T",
+    "index": 7,
+    "position": { "x": -1874, "y": -1076, "z": -400.634 }
+  },
+  {
+    "id": "0ee03b77-bb38-4113-8d21-9f8711fc72d2",
+    "mapId": "nuke",
+    "side": "T",
+    "index": 8,
+    "position": { "x": -1808, "y": -1089, "z": -400.634 }
+  },
+  {
+    "id": "1230fded-052f-4d02-acd8-3be774d2390f",
+    "mapId": "anubis",
+    "side": "CT",
+    "index": 1,
+    "position": { "x": -400, "y": 2192, "z": 32.0001 }
+  },
+  {
+    "id": "943fab39-2e50-4037-a83b-47d410320fed",
+    "mapId": "anubis",
+    "side": "CT",
+    "index": 2,
+    "position": { "x": -560, "y": 2192, "z": 32 }
+  },
+  {
+    "id": "bc21d536-4794-41ca-a08e-d118fc391567",
+    "mapId": "anubis",
+    "side": "CT",
+    "index": 3,
+    "position": { "x": -476, "y": 2216, "z": 32 }
+  },
+  {
+    "id": "c13ca8c0-85f6-46e8-b9dc-dbabe952859e",
+    "mapId": "anubis",
+    "side": "CT",
+    "index": 4,
+    "position": { "x": -608, "y": 2120, "z": 32 }
+  },
+  {
+    "id": "d12eaeb6-95e9-46d8-b603-15b79b405506",
+    "mapId": "anubis",
+    "side": "CT",
+    "index": 5,
+    "position": { "x": -360, "y": 2120, "z": 32.0001 }
+  },
+  {
+    "id": "d05ceac6-607d-403c-9f83-a4eca8ecf39b",
+    "mapId": "anubis",
+    "side": "T",
+    "index": 1,
+    "position": { "x": -416, "y": -1696, "z": 16 }
+  },
+  {
+    "id": "46da1f31-60de-4e62-b335-c400c5830864",
+    "mapId": "anubis",
+    "side": "T",
+    "index": 2,
+    "position": { "x": -234, "y": -1503.08, "z": 16 }
+  },
+  {
+    "id": "e50d747d-fc20-4e2f-bc1e-a58458f70687",
+    "mapId": "anubis",
+    "side": "T",
+    "index": 3,
+    "position": { "x": -154, "y": -1503.08, "z": 16 }
+  },
+  {
+    "id": "4e0e8185-f586-4718-adc4-17cd4ac7f636",
+    "mapId": "anubis",
+    "side": "T",
+    "index": 4,
+    "position": { "x": -384, "y": -1552, "z": 16 }
+  },
+  {
+    "id": "72de00af-9481-4f91-bceb-72181eaab839",
+    "mapId": "anubis",
+    "side": "T",
+    "index": 5,
+    "position": { "x": -328, "y": -1528, "z": 16 }
+  },
+  {
+    "id": "3cb44109-eb94-4406-9bfb-53b8298d21d8",
+    "mapId": "anubis",
+    "side": "T",
+    "index": 6,
+    "position": { "x": -264, "y": -1560, "z": 16 }
+  },
+  {
+    "id": "a925aa3c-d7ab-4eb7-963e-182175aaf1f7",
+    "mapId": "anubis",
+    "side": "T",
+    "index": 7,
+    "position": { "x": -144, "y": -1568, "z": 16 }
+  },
+  {
+    "id": "79c9013b-bb10-4715-a294-9592420908af",
+    "mapId": "anubis",
+    "side": "T",
+    "index": 8,
+    "position": { "x": -128.004, "y": -1632, "z": 16 }
+  },
+  {
+    "id": "13a2b99d-ca5a-4436-8b7b-883da58ebc05",
+    "mapId": "anubis",
+    "side": "T",
+    "index": 9,
+    "position": { "x": -416, "y": -1608, "z": 16 }
+  },
+  {
+    "id": "72bf3cf1-862f-4679-9bae-3dced8af9480",
+    "mapId": "anubis",
+    "side": "T",
+    "index": 10,
+    "position": { "x": -304, "y": -1608, "z": 16 }
+  },
+  {
+    "id": "4943c3db-f35d-4f82-8faf-7a9f76e8b7b6",
+    "mapId": "anubis",
+    "side": "T",
+    "index": 11,
+    "position": { "x": -192, "y": -1608, "z": 16 }
+  },
+  {
+    "id": "119de20f-7078-4480-ac51-1df018e08c8b",
+    "mapId": "overpass",
+    "side": "CT",
+    "index": 1,
+    "position": { "x": -2199, "y": 740, "z": 496 }
+  },
+  {
+    "id": "79f3c164-cff2-463a-bbe2-fdd82aa85907",
+    "mapId": "overpass",
+    "side": "CT",
+    "index": 2,
+    "position": { "x": -2273, "y": 770, "z": 496 }
+  },
+  {
+    "id": "bc056286-7a09-406c-9708-64ef08e6b10e",
+    "mapId": "overpass",
+    "side": "CT",
+    "index": 3,
+    "position": { "x": -2343, "y": 797, "z": 496 }
+  },
+  {
+    "id": "88ce39ed-3e73-46c5-8523-d888fcc2b492",
+    "mapId": "overpass",
+    "side": "CT",
+    "index": 4,
+    "position": { "x": -2190, "y": 817, "z": 496 }
+  },
+  {
+    "id": "d755839a-d1d7-4181-8f69-44d7ece20cfa",
+    "mapId": "overpass",
+    "side": "CT",
+    "index": 5,
+    "position": { "x": -2275, "y": 842, "z": 496 }
+  },
+  {
+    "id": "fa5d73fc-1272-424b-ac93-b15ed43cbfa0",
+    "mapId": "overpass",
+    "side": "T",
+    "index": 1,
+    "position": { "x": -1331, "y": -3190, "z": 272 }
+  },
+  {
+    "id": "8ce66d3d-b809-4f1d-a531-cde229ee3cd9",
+    "mapId": "overpass",
+    "side": "T",
+    "index": 2,
+    "position": { "x": -1448, "y": -3076, "z": 272.22873 }
+  },
+  {
+    "id": "a36f122d-ea3f-4821-8399-1313070bc8cf",
+    "mapId": "overpass",
+    "side": "T",
+    "index": 3,
+    "position": { "x": -1271, "y": -3262, "z": 270 }
+  },
+  {
+    "id": "23324171-f66a-4848-a8e7-624b6a57d3ef",
+    "mapId": "overpass",
+    "side": "T",
+    "index": 4,
+    "position": { "x": -1499, "y": -3126, "z": 284 }
+  },
+  {
+    "id": "68048a61-af73-4136-bcf7-8e7dc2c00538",
+    "mapId": "overpass",
+    "side": "T",
+    "index": 5,
+    "position": { "x": -1510.398, "y": -3053.8818, "z": 282.14636 }
+  },
+  {
+    "id": "26360b79-3627-4173-a238-2c27d8890465",
+    "mapId": "overpass",
+    "side": "T",
+    "index": 6,
+    "position": { "x": -1327, "y": -3262, "z": 278 }
+  },
+  {
+    "id": "0106c8c7-dc0a-47de-a1bc-af4407065dc8",
+    "mapId": "overpass",
+    "side": "T",
+    "index": 7,
+    "position": { "x": -1395, "y": -3190, "z": 280.41553 }
+  },
+  {
+    "id": "74455db0-496a-47ea-9ef1-f5609d33a0a0",
+    "mapId": "overpass",
+    "side": "T",
+    "index": 8,
+    "position": { "x": -1391, "y": -3262, "z": 292 }
+  },
+  {
+    "id": "b71ba5b3-86f0-46b8-a46a-91799216e1b6",
+    "mapId": "overpass",
+    "side": "T",
+    "index": 9,
+    "position": { "x": -1363, "y": -3122, "z": 268 }
+  },
+  {
+    "id": "c3e15436-8248-413c-a0f8-d5f1c4f5f78d",
+    "mapId": "overpass",
+    "side": "T",
+    "index": 10,
+    "position": { "x": -1463, "y": -3190, "z": 288 }
+  },
+  {
+    "id": "5b0fbb85-6b14-4699-a5ab-fced27f74ad8",
+    "mapId": "overpass",
+    "side": "T",
+    "index": 11,
+    "position": { "x": -1422.3871, "y": -3129.7292, "z": 277.4656 }
+  },
+  {
+    "id": "29d6b528-2650-42d9-a5c1-10c7dbaa2822",
+    "mapId": "train",
+    "side": "CT",
+    "index": 1,
+    "position": { "x": 1378, "y": -1244, "z": -306 }
+  },
+  {
+    "id": "2b901352-790e-437e-903c-7d85006216a4",
+    "mapId": "train",
+    "side": "CT",
+    "index": 2,
+    "position": { "x": 1552, "y": -1232, "z": -306 }
+  },
+  {
+    "id": "95a030d4-31ce-4b1f-893b-df99c95bdb03",
+    "mapId": "train",
+    "side": "CT",
+    "index": 3,
+    "position": { "x": 1456, "y": -1328, "z": -306 }
+  },
+  {
+    "id": "bf8974ef-931a-4887-a646-385f5d1854c8",
+    "mapId": "train",
+    "side": "CT",
+    "index": 4,
+    "position": { "x": 1542, "y": -1336, "z": -306 }
+  },
+  {
+    "id": "16321b26-e2ae-46d7-852d-a98b6eb9bc7b",
+    "mapId": "train",
+    "side": "CT",
+    "index": 5,
+    "position": { "x": 1600, "y": -1440, "z": -306 }
+  },
+  {
+    "id": "9ceb8774-95ed-42da-91cd-66d5b64d60b3",
+    "mapId": "train",
+    "side": "CT",
+    "index": 6,
+    "position": { "x": 1496, "y": -1424, "z": -306 }
+  },
+  {
+    "id": "0a4c7b32-82b5-4054-95f0-7f4874d430d9",
+    "mapId": "train",
+    "side": "CT",
+    "index": 7,
+    "position": { "x": 1342, "y": -1431, "z": -322 }
+  },
+  {
+    "id": "d2bf6db7-5e4c-49e7-8ae4-8f0698ee5e33",
+    "mapId": "train",
+    "side": "CT",
+    "index": 8,
+    "position": { "x": 1462, "y": -1226, "z": -306 }
+  },
+  {
+    "id": "ab1d9999-5336-4aa0-8e5b-2f638f717cff",
+    "mapId": "train",
+    "side": "T",
+    "index": 1,
+    "position": { "x": -2033, "y": 1362.2332, "z": -161.11 }
+  },
+  {
+    "id": "867ea6e9-041b-4806-bab9-5fb817e3344b",
+    "mapId": "train",
+    "side": "T",
+    "index": 2,
+    "position": { "x": -1925, "y": 1394, "z": -161.11 }
+  },
+  {
+    "id": "254b4e84-d502-40ba-8d43-907961d876e2",
+    "mapId": "train",
+    "side": "T",
+    "index": 3,
+    "position": { "x": -1916, "y": 1456.2332, "z": -161.11 }
+  },
+  {
+    "id": "91f077c3-15ca-4f9b-a214-6c74cd22bae6",
+    "mapId": "train",
+    "side": "T",
+    "index": 4,
+    "position": { "x": -2000, "y": 1434.2332, "z": -152 }
+  },
+  {
+    "id": "89e7cb65-1d4b-4047-a94a-2a2c89722749",
+    "mapId": "train",
+    "side": "T",
+    "index": 5,
+    "position": { "x": -1850, "y": 1256, "z": -161.11 }
+  },
+  {
+    "id": "55fbcc10-6fd7-4155-8722-d3a133fc63a2",
+    "mapId": "train",
+    "side": "T",
+    "index": 6,
+    "position": { "x": -1955, "y": 1326, "z": -161.11 }
+  },
+  {
+    "id": "02c43f90-34ec-4442-bd16-c8f7ae221582",
+    "mapId": "vertigo",
+    "side": "CT",
+    "index": 1,
+    "position": { "x": -860.1436, "y": 940.28204, "z": 11789 }
+  },
+  {
+    "id": "73f2768a-5fcd-4810-958f-14f090f8f52f",
+    "mapId": "vertigo",
+    "side": "CT",
+    "index": 2,
+    "position": { "x": -929.6314, "y": 918.6384, "z": 11789 }
+  },
+  {
+    "id": "049f4e01-4f98-4a64-b726-f74a0fa636c0",
+    "mapId": "vertigo",
+    "side": "CT",
+    "index": 3,
+    "position": { "x": -1189.3397, "y": 862.16864, "z": 11789 }
+  },
+  {
+    "id": "3e9480ce-f690-45d6-a122-ffec2d1947aa",
+    "mapId": "vertigo",
+    "side": "CT",
+    "index": 4,
+    "position": { "x": -1126.5762, "y": 925.89246, "z": 11789 }
+  },
+  {
+    "id": "4713e055-4c26-4ed1-9936-4c99e4f2eba8",
+    "mapId": "vertigo",
+    "side": "CT",
+    "index": 5,
+    "position": { "x": -1044.0262, "y": 924.3055, "z": 11789 }
+  },
+  {
+    "id": "28115b13-3f91-4b50-8215-b266a8a07b10",
+    "mapId": "vertigo",
+    "side": "T",
+    "index": 1,
+    "position": { "x": -1411.3145, "y": -1130.3131, "z": 11505 }
+  },
+  {
+    "id": "9a237eeb-a14f-41f2-950b-d9ede74bb9f4",
+    "mapId": "vertigo",
+    "side": "T",
+    "index": 2,
+    "position": { "x": -1502.5718, "y": -1360.8275, "z": 11505 }
+  },
+  {
+    "id": "1f950a89-333a-40ce-8e36-6a678df8d2c1",
+    "mapId": "vertigo",
+    "side": "T",
+    "index": 3,
+    "position": { "x": -1439.7609, "y": -1322.0359, "z": 11505 }
+  },
+  {
+    "id": "3996f14a-e52a-4c37-8f4d-0dab9ccb232a",
+    "mapId": "vertigo",
+    "side": "T",
+    "index": 4,
+    "position": { "x": -1439.5718, "y": -1251.7084, "z": 11505 }
+  },
+  {
+    "id": "b8c4ed28-f99f-41c2-97f5-1e97713751fd",
+    "mapId": "vertigo",
+    "side": "T",
+    "index": 5,
+    "position": { "x": -1468.8372, "y": -1194.3975, "z": 11505 }
+  },
+  {
+    "id": "19173e40-a541-4ac5-8b1f-d54d199dc974",
+    "mapId": "cache",
+    "side": "CT",
+    "index": 1,
+    "position": { "x": -1600.2832, "y": 794.81934, "z": 1615.7767 }
+  },
+  {
+    "id": "3810c243-193c-4b05-a5ec-a3650e771364",
+    "mapId": "cache",
+    "side": "CT",
+    "index": 2,
+    "position": { "x": -1448.2832, "y": 794.81934, "z": 1615.7767 }
+  },
+  {
+    "id": "ecaeb8ab-666c-42f7-855c-064d54d58f7b",
+    "mapId": "cache",
+    "side": "CT",
+    "index": 3,
+    "position": { "x": -1400.2832, "y": 874.81934, "z": 1615.7767 }
+  },
+  {
+    "id": "8109f57d-6354-4cbd-a66e-e848870c5e53",
+    "mapId": "cache",
+    "side": "CT",
+    "index": 4,
+    "position": { "x": -1488.2832, "y": 874.81934, "z": 1615.7767 }
+  },
+  {
+    "id": "a851a6d1-0d03-46c6-8bf2-1248e348a99f",
+    "mapId": "cache",
+    "side": "CT",
+    "index": 5,
+    "position": { "x": -1560.2832, "y": 874.81934, "z": 1615.7767 }
+  },
+  {
+    "id": "d3dc583d-38b8-4d2e-95b3-7346b69108a2",
+    "mapId": "cache",
+    "side": "CT",
+    "index": 6,
+    "position": { "x": -1648.2832, "y": 874.81934, "z": 1615.7767 }
+  },
+  {
+    "id": "63a32667-db5e-45a7-ae18-6fbc1b759b10",
+    "mapId": "cache",
+    "side": "CT",
+    "index": 7,
+    "position": { "x": -1648.2832, "y": 706.81934, "z": 1615.7767 }
+  },
+  {
+    "id": "ff2cdc03-a4a6-4aa3-8e1b-8d4ade2bdcb8",
+    "mapId": "cache",
+    "side": "CT",
+    "index": 8,
+    "position": { "x": -1560.2832, "y": 706.81934, "z": 1615.7767 }
+  },
+  {
+    "id": "82bd9a58-a52e-4403-94cb-f38e46ae03b2",
+    "mapId": "cache",
+    "side": "CT",
+    "index": 9,
+    "position": { "x": -1488.2832, "y": 706.81934, "z": 1615.7767 }
+  },
+  {
+    "id": "d1de9a34-1498-4d75-84fd-9b7dcd546b4c",
+    "mapId": "cache",
+    "side": "CT",
+    "index": 10,
+    "position": { "x": -1400.2832, "y": 706.81934, "z": 1615.7767 }
+  },
+  {
+    "id": "a7c24736-b478-4114-a9a5-98d727becd08",
+    "mapId": "cache",
+    "side": "CT",
+    "index": 11,
+    "position": { "x": -1600.2832, "y": 618.81934, "z": 1615.7767 }
+  },
+  {
+    "id": "55ce6211-2da0-4078-8fe3-0a2b5d166cff",
+    "mapId": "cache",
+    "side": "CT",
+    "index": 12,
+    "position": { "x": -1448.2832, "y": 618.81934, "z": 1615.7767 }
+  },
+  {
+    "id": "4aa3daf3-5799-4377-819c-22bfe6cf5bd7",
+    "mapId": "cache",
+    "side": "CT",
+    "index": 13,
+    "position": { "x": -1600.2832, "y": 954.81934, "z": 1615.7767 }
+  },
+  {
+    "id": "444d3b14-fe0d-490c-ab75-b4a8f81ee0be",
+    "mapId": "cache",
+    "side": "CT",
+    "index": 14,
+    "position": { "x": -1448.2832, "y": 954.81934, "z": 1615.7767 }
+  },
+  {
+    "id": "af2f3575-0b2b-4ff6-a2db-c4db27612647",
+    "mapId": "cache",
+    "side": "CT",
+    "index": 15,
+    "position": { "x": -1524.2832, "y": 970.81934, "z": 1615.7767 }
+  },
+  {
+    "id": "7a1c1432-3f16-43e8-9328-3dd9133f82bc",
+    "mapId": "cache",
+    "side": "CT",
+    "index": 16,
+    "position": { "x": -1524.2832, "y": 794.81934, "z": 1615.7767 }
+  },
+  {
+    "id": "aafe01a9-deed-4496-9adf-751a9cf0edfc",
+    "mapId": "cache",
+    "side": "T",
+    "index": 1,
+    "position": { "x": 3041.7686, "y": -21.082214, "z": 1628 }
+  },
+  {
+    "id": "82687a4e-d560-4000-a6b5-dece3c9ea009",
+    "mapId": "cache",
+    "side": "T",
+    "index": 2,
+    "position": { "x": 3094.2686, "y": -152.58221, "z": 1628 }
+  },
+  {
+    "id": "2dc1fc5d-dc83-4a40-8bac-1ca5775bf767",
+    "mapId": "cache",
+    "side": "T",
+    "index": 3,
+    "position": { "x": 2916.7686, "y": 69.417786, "z": 1628 }
+  },
+  {
+    "id": "eda236f1-eb20-49c6-b35d-ad36de885182",
+    "mapId": "cache",
+    "side": "T",
+    "index": 4,
+    "position": { "x": 3077.7686, "y": 135.91779, "z": 1628 }
+  },
+  {
+    "id": "19454084-0422-4808-a9d4-2a1400421cb5",
+    "mapId": "cache",
+    "side": "T",
+    "index": 5,
+    "position": { "x": 3019.2686, "y": 225.41779, "z": 1628 }
   }
 ]

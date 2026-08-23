@@ -68,6 +68,13 @@ def run_command(cmd: str, port: int = DEFAULT_PORT, timeout: float = DEFAULT_TIM
         raise PluginUnavailableError(str(exc)) from exc
 
 
+def change_map(map_id: str, port: int = DEFAULT_PORT, timeout: float = DEFAULT_TIMEOUT) -> None:
+    """Recharge le serveur sur une autre carte (voir run_command) — utilisé par le
+    bouton "Changer de map" du picker de spawn quand la map serveur ne correspond
+    pas à celle du lineup visé."""
+    run_command(f"changelevel de_{map_id}", port=port, timeout=timeout)
+
+
 def get_player_positions(port: int = DEFAULT_PORT, timeout: float = DEFAULT_TIMEOUT) -> list[dict]:
     """Positions de tous les joueurs valides, bots inclus (contrairement à
     get_position, qui ne prend que le premier humain) — voir HttpApiServer.cs,

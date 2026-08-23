@@ -12,16 +12,25 @@
      .browse-hero) ; tout le reste (.browse-foreground) flotte par-dessus, en semi-transparent,
      ancré en haut (recherche/filtres) et en bas (détail + vignettes) avec un espace vide au
      milieu qui laisse voir la photo. -->
-<section id="view-browse" class="panel browse-hero">
+<section id="view-browse" class="panel browse-hero full-bleed">
 
   <div class="media-stage" id="browseMediaStage">
     <img class="stage-media hidden" id="detailScreenshotImg" alt="Screenshot du point de départ">
+    <!-- Réticule de visée plutôt qu'un pictogramme "photo cassée" générique — cohérent
+         avec le viseur magenta que l'app dessine elle-même sur les vraies captures
+         (voir CLAUDE.md, _draw_crosshair). -->
     <svg class="stage-media" id="detailScreenshotFallback" viewBox="0 0 200 160" preserveAspectRatio="xMidYMid slice">
       <rect x="0" y="0" width="200" height="160" fill="var(--surface-1)"/>
-      <path d="M0 70 L200 45 L200 160 L0 160 Z" fill="var(--surface-0)"/>
-      <line x1="125" y1="55" x2="145" y2="55" stroke="var(--text-accent)" stroke-width="2"/>
-      <line x1="135" y1="45" x2="135" y2="65" stroke="var(--text-accent)" stroke-width="2"/>
-      <circle cx="135" cy="55" r="9" fill="none" stroke="var(--text-accent)" stroke-width="1" stroke-dasharray="2 2"/>
+      <rect x="0" y="92" width="200" height="68" fill="var(--surface-0)"/>
+      <circle cx="100" cy="78" r="22" fill="none" stroke="#e6007e" stroke-width="1" stroke-dasharray="3 3" opacity="0.8"/>
+      <line x1="100" y1="48" x2="100" y2="64" stroke="#e6007e" stroke-width="2"/>
+      <line x1="100" y1="92" x2="100" y2="108" stroke="#e6007e" stroke-width="2"/>
+      <line x1="70" y1="78" x2="86" y2="78" stroke="#e6007e" stroke-width="2"/>
+      <line x1="114" y1="78" x2="130" y2="78" stroke="#e6007e" stroke-width="2"/>
+      <path d="M58 48 L58 38 L68 38" fill="none" stroke="var(--text-muted)" stroke-width="1.5"/>
+      <path d="M142 48 L142 38 L132 38" fill="none" stroke="var(--text-muted)" stroke-width="1.5"/>
+      <path d="M58 108 L58 118 L68 118" fill="none" stroke="var(--text-muted)" stroke-width="1.5"/>
+      <path d="M142 108 L142 118 L132 118" fill="none" stroke="var(--text-muted)" stroke-width="1.5"/>
     </svg>
     <p class="stage-caption hidden" id="detailScreenshotCaption"></p>
   </div>
@@ -32,18 +41,11 @@
     <div class="stage-empty hidden" id="instantGroupShotEmpty">Sélectionne un spawn ci-dessous.</div>
   </div>
 
+  <div class="browse-layout">
   <div class="browse-foreground">
     <div class="toolbar">
-      <select id="mapSelect"></select>
-      <div style="display:flex;gap:4px;">
-        <button class="pill" id="side-CT" onclick="setSide('CT')">CT</button>
-        <button class="pill" id="side-T" onclick="setSide('T')">T</button>
-      </div>
-      <input type="text" id="searchInput" placeholder="Rechercher un spot, ex: Palace smoke" style="flex:1;min-width:160px;" oninput="onSearchInput()">
       <button class="pill" onclick="openCreateView()">+ Nouveau lineup</button>
     </div>
-
-    <div class="pill-row" id="categoryPills"></div>
 
     <!-- Titre (haut-gauche) + actions (haut-droite) : pastilles compactes plutôt
          qu'une grande barre pleine largeur, pour laisser voir la photo entre les deux. -->
@@ -51,9 +53,7 @@
       <div class="detail-bar" id="lineupDetail">
         <div style="min-width:0;">
           <p style="font-size:14px;font-weight:500;margin:0;" id="detailSpotName">—</p>
-          <input type="text" class="hidden" id="detailSpotNameInput" style="font-size:14px;font-weight:500;width:100%;margin:0;">
           <p style="font-size:12px;color:var(--text-secondary);margin:2px 0 0;" id="detailNotes"></p>
-          <input type="text" class="hidden" id="detailNotesInput" style="font-size:12px;width:100%;margin:2px 0 0;">
         </div>
         <span class="badge hidden" id="detailThrowLabel"></span>
       </div>
@@ -69,9 +69,7 @@
 
       <div class="detail-bar" id="detailActions" style="gap:8px;">
         <button class="pill" id="btnToggleFavorite" onclick="toggleFavorite()">☆</button>
-        <button class="pill" id="btnEditLineup" onclick="startEditLineup()">Éditer</button>
-        <button class="pill hidden" id="btnSaveEditLineup" onclick="saveEditLineup()">Enregistrer</button>
-        <button class="pill hidden" id="btnCancelEditLineup" onclick="cancelEditLineup()">Annuler</button>
+        <button class="pill" id="btnEditLineup" onclick="openEditLineupView()">Éditer</button>
         <button class="pill" id="btnDeleteLineup" onclick="deleteLineup()">Supprimer</button>
         <button class="pill hidden" id="btnOpenSpawnLineup" onclick="openSelectedSpawnLineup()">Éditer ce lineup</button>
       </div>
@@ -83,7 +81,7 @@
          ("Autres lineups"), qui est un frère en flux normal après cette zone. -->
     <div class="browse-spacer">
       <div class="inset-panel inset-radar hidden" id="radarInset">
-        <div class="radar-wrap" id="radarWrap">
+        <div class="radar-wrap" id="radarWrap" onclick="openRadarFullscreen()" style="cursor:pointer;" title="Voir tous les lineups sur le radar">
           <img class="radar-img" id="radarImg" alt="Radar de la carte">
           <div class="radar-marker hidden" id="radarMarker"></div>
         </div>
@@ -101,16 +99,64 @@
       </div>
     </div>
 
-    <p class="card-label" id="stripLabel">Autres lineups</p>
-    <div class="strip" id="lineupStrip"></div>
   </div>
 
+  <!-- Panneau de filtres — partagé avec le radar plein écran : main.js le déplace
+       (appendChild) dans .radar-fullscreen-layout à l'ouverture de cette vue, et le
+       ramène ici à la fermeture (openRadarFullscreen/closeRadarFullscreen). Reste un
+       simple frère flex ("push", pas overlay) dans la vue où il se trouve à l'instant. -->
+  <div id="lineupPanelWrap" class="side-panel-wrap open">
+    <button class="pill" id="btnToggleLineupPanel" onclick="toggleLineupPanel()" title="Filtres &amp; lineups">☰</button>
+    <aside id="lineupPanel" class="side-panel">
+      <div class="side-panel-inner">
+        <div class="side-panel-filters">
+          <select id="mapSelect"></select>
+          <span class="server-map-badge hidden" id="serverMapBadge"></span>
+          <div style="display:flex;gap:4px;">
+            <button class="pill" id="side-CT" onclick="toggleSide('CT')">CT</button>
+            <button class="pill" id="side-T" onclick="toggleSide('T')">T</button>
+          </div>
+          <input type="text" id="searchInput" placeholder="Rechercher un spot, ex: Palace smoke" oninput="onSearchInput()">
+          <div class="pill-row" id="categoryPills"></div>
+          <button class="pill" id="instantOnlyToggle" onclick="toggleInstantOnlyFilter()">Instant uniquement</button>
+        </div>
+
+        <p class="card-label" id="stripLabel">Autres lineups</p>
+        <div class="strip" id="lineupStrip"></div>
+      </div>
+    </aside>
+  </div>
+
+  </div>
+
+</section>
+
+<!-- Vue "Radar plein écran" : toutes les positions de lineups standards (filtrées)
+     d'un coup, une icône par type de grenade plutôt qu'un point unique. Les lineups
+     instant n'y apparaissent pas — ils ont leur propre flux dédié (voir
+     renderInstantGroupView dans main.js). Bouton retour + titre en overlay flottant
+     plutôt qu'en toolbar de flux, pour laisser le radar occuper le reste de l'espace. -->
+<section id="view-radar-fullscreen" class="panel hidden full-bleed">
+  <div class="radar-fullscreen-topbar">
+    <button class="pill" onclick="closeRadarFullscreen()">← Retour</button>
+    <p style="font-size:15px;font-weight:500;margin:0;" id="radarFullscreenTitle"></p>
+  </div>
+  <!-- Le panneau de filtres est déplacé ici (second enfant flex) par
+       openRadarFullscreen() quand cette vue s'ouvre — voir main.js. -->
+  <div class="radar-fullscreen-layout">
+    <div class="radar-slot">
+      <div class="radar-wrap" id="radarFullscreenWrap">
+        <img class="radar-img" id="radarFullscreenImg" alt="Radar de la carte">
+      </div>
+    </div>
+  </div>
+  <p class="status-line hidden" id="radarFullscreenEmpty" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);margin:0;">Pas de calibration radar pour cette carte.</p>
 </section>
 
 <!-- Vue "Nouveau lineup" : formulaire + capture plugin + saisie manuelle -->
 <section id="view-create" class="panel hidden">
   <div class="toolbar">
-    <p style="font-size:15px;font-weight:500;margin:0;">Nouveau lineup</p>
+    <p style="font-size:15px;font-weight:500;margin:0;" id="createViewTitle">Nouveau lineup</p>
     <button class="pill" style="margin-left:auto;" onclick="closeCreateView()">Annuler</button>
   </div>
 
@@ -143,7 +189,8 @@
         <option value="walk">Walk</option>
         <option value="run">Run</option>
         <option value="jump">Jump</option>
-        <option value="runjump">Run+Jump</option>
+        <option value="wjump">W+Jump</option>
+        <option value="walkrunjump">Walk+Run+Jump</option>
       </select>
     </div>
     <div class="form-row">
@@ -176,35 +223,38 @@
   <!-- Capture via plugin -->
   <div class="card capture-card">
     <p class="card-label">Capture en jeu (plugin)</p>
-    <div class="capture-layout">
-      <div class="capture-media">
-        <div class="hidden" id="instantSpawnPanel">
-          <p class="card-label">Spawn (instant smoke)</p>
-          <div class="radar-slot">
-            <div class="radar-wrap" id="instantPickerWrap">
-              <img class="radar-img" id="instantPickerImg" alt="Radar de la carte">
-            </div>
+
+    <div class="capture-media">
+      <div class="hidden" id="instantSpawnPanel">
+        <div class="radar-slot">
+          <div class="radar-wrap" id="instantPickerWrap">
+            <img class="radar-img" id="instantPickerImg" alt="Radar de la carte">
           </div>
         </div>
-        <img class="screenshot-preview hidden" id="captureScreenshotImg" alt="Screenshot capturé">
-        <div class="actions-row">
-          <button id="btnSaveCapture" onclick="saveCapture()" disabled>Sauvegarder</button>
-          <button id="btnToggleHud" onclick="toggleHud()">Masquer le HUD (test)</button>
-        </div>
       </div>
-      <div class="capture-side">
+      <img class="screenshot-preview hidden" id="captureScreenshotImg" alt="Screenshot capturé">
+    </div>
+
+    <div class="capture-footer">
+      <div class="capture-footer-status">
         <p class="status-line" id="captureStatusLine">Vise puis F9 pour capturer, F10 pour tester.</p>
         <p class="status-line hidden" id="instantPickerStatusLine">Sélectionnez un spawn puis téléportez-vous.</p>
-        <div class="actions-row hidden" id="teleportActionsRow">
-          <button id="btnTeleportSpawn" onclick="teleportToSelectedSpawn()" disabled>Téléporter à ce spawn</button>
-        </div>
         <p class="status-line hidden" id="hudToggleStatusLine"></p>
+      </div>
+      <div class="actions-row">
+        <div class="hidden" id="teleportActionsRow">
+          <button id="btnTeleportSpawn" onclick="teleportToSelectedSpawn()" disabled>Téléporter à ce spawn</button>
+          <button class="hidden" id="btnFixMapMismatch">Changer de map</button>
+        </div>
+        <button id="btnSaveCapture" onclick="saveCapture()" disabled>Sauvegarder</button>
+        <button id="btnToggleHud" onclick="toggleHud()">Masquer le HUD (test)</button>
       </div>
     </div>
   </div>
 
 </section>
 
+<script src="logic.js"></script>
 <script src="main.js"></script>
 </body>
 </html>

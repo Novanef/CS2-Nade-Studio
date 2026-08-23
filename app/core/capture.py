@@ -20,7 +20,7 @@ import psutil
 from PIL import Image, ImageDraw
 
 from core import plugin_client
-from core.models import ClickType, GrenadeType, LineupCategory, Movement, Position, Side, ViewAngle, Waypoint
+from core.models import ClickType, GrenadeType, Lineup, LineupCategory, Movement, Position, Side, ViewAngle, Waypoint
 from core.storage import SCREENSHOTS_DIR
 
 CS2_WINDOW_TITLE = "Counter-Strike 2"
@@ -209,6 +209,7 @@ class CaptureDraft:
     clickType: ClickType = "left"
     spawnPoint: str | None = None
     waypoint: Waypoint | None = None
+    editingLineupId: str | None = None
 
 
 class CaptureSession:
@@ -228,6 +229,7 @@ class CaptureSession:
         movement: Movement = "stand",
         clickType: ClickType = "left",
         spawnPoint: str | None = None,
+        editingLineupId: str | None = None,
     ) -> CaptureDraft:
         self.draft = CaptureDraft(
             mapId=mapId,
@@ -239,7 +241,71 @@ class CaptureSession:
             movement=movement,
             clickType=clickType,
             spawnPoint=spawnPoint,
+            editingLineupId=editingLineupId,
         )
+        return self.draft
+
+    def start_edit(self, lineup: Lineup) -> CaptureDraft:
+        """Réutilise le formulaire de création en mode édition : pré-remplit le
+        draft avec les données du lineup existant, waypoint compris, pour que la
+        position/le screenshot capturés restent valides si l'utilisateur ne
+        recapture pas via F9 (voir CLAUDE.md et le plan de la fonctionnalité)."""
+        wp = lineup.throw_waypoint
+        self.draft = CaptureDraft(
+            mapId=lineup.mapId,
+            side=lineup.side,
+            grenadeType=lineup.grenadeType,
+            spotName=lineup.spotName,
+            notes=lineup.notes,
+            category=lineup.category,
+            movement=wp.movement if wp else "stand",
+            clickType=wp.clickType if wp and wp.clickType else "left",
+            spawnPoint=lineup.spawnPoint,
+            waypoint=wp,
+            editingLineupId=lineup.id,
+        )
+        return self.draft
+
+    def update_fields(
+        self,
+        mapId: str,
+        side: Side,
+        grenadeType: GrenadeType,
+        spotName: str,
+        notes: str,
+        movement: Movement,
+        clickType: ClickType,
+        category: LineupCategory,
+        spawnPoint: str | None,
+    ) -> CaptureDraft:
+        """Met à jour les champs du draft en cours d'édition sans perdre le
+        waypoint existant, sauf si la carte, le camp ou le spawn (instant smoke)
+        change — dans ces trois cas la position capturée ne correspond plus à
+        l'emplacement sélectionné."""
+        if self.draft is None:
+            raise ValueError("no draft in progress")
+
+        if (
+            self.draft.mapId != mapId
+            or self.draft.side != side
+            or self.draft.spawnPoint != spawnPoint
+        ):
+            self.draft.waypoint = None
+
+        self.draft.mapId = mapId
+        self.draft.side = side
+        self.draft.grenadeType = grenadeType
+        self.draft.spotName = spotName
+        self.draft.notes = notes
+        self.draft.movement = movement
+        self.draft.clickType = clickType
+        self.draft.category = category
+        self.draft.spawnPoint = spawnPoint
+
+        if self.draft.waypoint is not None:
+            self.draft.waypoint.movement = movement
+            self.draft.waypoint.clickType = clickType
+
         return self.draft
 
     def cancel(self) -> None:
@@ -366,4 +432,23 @@ def new_lineup_dict(draft: CaptureDraft, source: str) -> dict:
         "createdAt": now,
         "updatedAt": now,
         "waypoints": [draft.waypoint.to_dict()],
+    }
+
+
+def updated_lineup_fields(draft: CaptureDraft) -> dict:
+    """Construit les kwargs pour storage.update_lineup(...) à partir d'un draft
+    en mode édition (voir CaptureSession.start_edit/editingLineupId)."""
+    if draft.waypoint is None:
+        raise ValueError("draft has no waypoint yet")
+
+    return {
+        "mapId": draft.mapId,
+        "side": draft.side,
+        "grenadeType": draft.grenadeType,
+        "category": draft.category,
+        "spawnPoint": draft.spawnPoint,
+        "spotName": draft.spotName,
+        "notes": draft.notes,
+        "waypoints": [draft.waypoint],
+        "updatedAt": datetime.now(timezone.utc).isoformat(),
     }

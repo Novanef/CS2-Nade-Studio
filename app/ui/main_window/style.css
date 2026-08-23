@@ -1,21 +1,22 @@
 :root {
-  --surface-0: #ffffff;
-  --surface-1: #f7f7f5;
-  --surface-2: #eeeeec;
-  --border: rgba(0, 0, 0, 0.08);
-  --border-strong: rgba(0, 0, 0, 0.25);
-  --border-accent: #93c5fd;
-  --bg-accent: #eff6ff;
-  --text-accent: #2563eb;
-  --text-secondary: #6b7280;
-  --text-muted: #9ca3af;
+  --surface-0: #14161a;
+  --surface-1: #1c1f26;
+  --surface-2: #262a33;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.22);
+  --border-accent: rgba(245, 166, 35, 0.55);
+  --bg-accent: rgba(245, 166, 35, 0.14);
+  --text-accent: #f5a623;
+  --text-primary: #edeae2;
+  --text-secondary: #a0a4ad;
+  --text-muted: #6b6f78;
   --radius: 8px;
 }
 
 body {
   font-family: system-ui, -apple-system, sans-serif;
   background: var(--surface-0);
-  color: #111827;
+  color: var(--text-primary);
   margin: 0;
   padding: 24px;
   height: 100vh;
@@ -75,14 +76,14 @@ button[disabled] {
 .browse-foreground button,
 .browse-foreground input,
 .browse-foreground select {
-  background: rgba(247, 247, 245, 0.6);
+  background: rgba(28, 31, 38, 0.6);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
 
 .browse-foreground .detail-bar,
 .browse-foreground .chip {
-  background: rgba(238, 238, 236, 0.55);
+  background: rgba(38, 42, 51, 0.55);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
@@ -90,11 +91,6 @@ button[disabled] {
 .browse-foreground .detail-bar {
   padding: 8px 12px;
   margin-bottom: 0;
-}
-
-#stripLabel {
-  color: #fff;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
 }
 
 .card {
@@ -159,6 +155,130 @@ html {
   flex-direction: column;
 }
 
+#view-radar-fullscreen {
+  position: relative;
+  overflow: hidden;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.radar-fullscreen-topbar {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 5;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Seul enfant en flux normal de #view-radar-fullscreen (topbar et message vide sont
+   en position:absolute) — .radar-slot y a flex:1 (voir plus bas), donc quand
+   #lineupPanelWrap y est déplacé (second enfant flex), le radar rétrécit pour lui
+   laisser la place plutôt que d'être recouvert. */
+.radar-fullscreen-layout {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+.radar-fullscreen-topbar button,
+.radar-fullscreen-topbar p {
+  background: rgba(28, 31, 38, 0.75);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 6px 12px;
+  border-radius: var(--radius);
+}
+
+.marker-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--text-accent);
+  color: #fff;
+  font-size: 10px;
+  line-height: 16px;
+  text-align: center;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.radar-cluster-popover {
+  position: absolute;
+  z-index: 6;
+  background: var(--surface-0);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 160px;
+}
+
+.radar-cluster-popover button {
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  background: var(--surface-2);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 6px 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.radar-cluster-popover .popover-entry-icon {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  display: flex;
+}
+
+.radar-cluster-popover .popover-entry-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.radar-cluster-popover .muted {
+  color: var(--text-secondary);
+}
+
+.radar-marker-icon {
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
+  padding: 3px;
+  box-sizing: border-box;
+  background: var(--surface-0);
+  border: 1.5px solid var(--border-strong);
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+
+.radar-marker-icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.radar-marker-icon:hover {
+  transform: scale(1.3);
+  z-index: 5;
+}
+
 #instantSpawnPanel {
   flex: 1;
   min-height: 0;
@@ -173,6 +293,17 @@ html {
    avec un espace vide au milieu (.browse-spacer) qui laisse voir la photo.
    Un seul des deux fonds (#browseMediaStage / #instantMediaStage) est visible
    à la fois — voir renderLineups() dans main.js. */
+/* Vues plein cadre (photo/radar) : annule le padding de 24px du body avec une marge
+   négative égale, et retire le look "carte" de .panel (bord/radius/padding) — pour
+   que la photo et le panneau latéral touchent vraiment les bords de la fenêtre.
+   #view-create garde .panel intact (padding du body + carte), lui, c'est voulu. */
+.full-bleed {
+  margin: -24px;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+}
+
 .browse-hero {
   position: relative;
   overflow: hidden;
@@ -186,13 +317,95 @@ html {
   background: var(--surface-1);
 }
 
-.browse-foreground {
+.browse-layout {
   position: relative;
   z-index: 1;
   flex: 1;
   display: flex;
+  min-height: 0;
+}
+
+.browse-foreground {
+  flex: 1;
+  min-width: 0;
+  display: flex;
   flex-direction: column;
   min-height: 0;
+}
+
+/* Frère flex de .browse-foreground (dans .browse-layout) OU de .radar-slot (dans
+   .radar-fullscreen-layout) selon la vue où main.js l'a déplacé (appendChild) — un
+   panneau de filtres partagé qui POUSSE le contenu plutôt que de le recouvrir (un
+   overlay flottant cachait le radar/les insets, jugé inacceptable). .side-panel-wrap
+   ne clippe jamais (le bouton doit pouvoir en dépasser) — c'est .side-panel, juste à
+   l'intérieur, qui anime la largeur ET clippe directement ses propres enfants avec
+   son propre overflow:hidden. */
+.side-panel-wrap {
+  position: relative;
+  flex: 0 0 0;
+  width: 0;
+  overflow: visible;
+  min-height: 0;
+  transition: flex-basis 0.22s ease, width 0.22s ease;
+}
+
+.side-panel-wrap.open {
+  flex: 0 0 320px;
+  width: 320px;
+}
+
+/* Bouton de bascule accroché au bord gauche du panneau (pas dans la toolbar) :
+   quand le panneau est fermé (flex-basis 0 sur .side-panel-wrap), c'est la SEULE
+   partie visible — une languette qui dépasse via ce left négatif — et il coulisse
+   avec le panneau à l'ouverture, puisqu'il est positionné relativement au wrap. */
+#btnToggleLineupPanel {
+  position: absolute;
+  top: 6px;
+  left: -33px;
+  width: 33px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  font-size: 15px;
+  border-radius: 8px 0 0 8px;
+  border-right: none;
+  box-shadow: -2px 2px 8px rgba(0, 0, 0, 0.14);
+}
+
+.side-panel {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.side-panel-inner {
+  width: 320px;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--surface-1);
+  border-left: 0.5px solid var(--border);
+  box-shadow: -4px 0 12px rgba(0, 0, 0, 0.15);
+}
+
+.side-panel-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.side-panel-filters #mapSelect,
+.side-panel-filters #searchInput {
+  width: 100%;
 }
 
 .browse-spacer {
@@ -357,14 +570,28 @@ html {
   border-radius: var(--radius);
 }
 
+.server-map-badge {
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.server-map-badge.warn {
+  color: #f87171;
+}
+
 .strip {
   display: flex;
-  gap: 8px;
-  overflow-x: auto;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
 }
 
 .chip {
-  min-width: 90px;
+  width: 100%;
+  box-sizing: border-box;
   background: var(--surface-2);
   border: 0.5px solid var(--border);
   border-radius: var(--radius);
@@ -436,51 +663,95 @@ html {
 }
 
 .status-line.error {
-  color: #dc2626;
+  color: #f87171;
 }
 
-/* Le screenshot occupe tout .capture-media (flex:1 en cascade depuis le card,
-   voir .capture-layout ci-dessous) plutôt qu'un max-height deviné — il utilise
-   ainsi toute la hauteur ET la largeur laissées libres par .capture-side. */
+/* Le screenshot occupe tout .capture-media (flex:1 en cascade depuis le card)
+   plutôt qu'un max-height deviné — il récupère toute la largeur restante à
+   côté du radar (#instantSpawnPanel), ou toute la largeur si le radar est
+   masqué (catégorie standard), sans JS dédié. height:100% nécessaire car
+   .capture-media est un flex row : le stretch par défaut du cross-axis ne
+   s'applique à la hauteur que si elle est explicitée. min-width:0 nécessaire
+   car un flex item a par défaut min-width:auto (= sa taille intrinsèque) —
+   sans ça, une image capturée en haute résolution/ratio large empêche l'item
+   de rétrécir sous cette taille et déborde du card (scrollbar horizontale). */
 .screenshot-preview {
   display: block;
   flex: 1;
+  min-width: 0;
   min-height: 60px;
+  height: 100%;
   width: 100%;
   object-fit: contain;
   border-radius: var(--radius);
 }
 
-/* Card "Capture en jeu" : média (screenshot / radar instant) à gauche, textes
-   de statut + boutons dans une colonne étroite à droite plutôt qu'empilés —
-   utilise la largeur du card au lieu de la laisser vide sur les côtés. */
-.capture-layout {
-  display: flex;
-  gap: 10px;
-  flex: 1;
-  min-height: 0;
-}
-
+/* Card "Capture en jeu" : radar (carré, largeur = hauteur dispo) et screenshot
+   côte à côte, chacun profitant de TOUTE la hauteur de .capture-media plutôt
+   que de la moitié (ancien empilement vertical) — le screenshot prend flex:1
+   du reste de la largeur, et récupère automatiquement toute la largeur quand
+   #instantSpawnPanel est masqué (catégorie "standard"), sans JS supplémentaire.
+   overflow:hidden en filet de sécurité : #view-create a overflow-y:auto, ce qui
+   recalcule overflow-x en "auto" aussi (règle CSS overflow-x/y) — un dépassement
+   d'arrondi d'un pixel (mise à l'échelle Windows/DPI notamment) suffirait sinon
+   à faire apparaître une scrollbar horizontale visible pour rien. */
 .capture-media {
   flex: 1;
   min-height: 0;
   display: flex;
-  flex-direction: column;
+  gap: 10px;
+  overflow: hidden;
 }
 
-.capture-side {
-  width: 230px;
+/* Panneau radar : flex:none pour ne jamais être écrasé par le screenshot ni
+   forcé à s'étirer en largeur — sa largeur en pixels est imposée par
+   fitCreateRadarSquares() (main.js) une fois sa hauteur connue (héritée par
+   stretch du flex row, comportement par défaut de align-items). */
+#instantSpawnPanel {
   flex: none;
   display: flex;
-  flex-direction: column;
+  min-width: 0;
   min-height: 0;
-  overflow-y: auto;
+}
+
+#instantSpawnPanel .radar-slot {
+  flex: 1;
 }
 
 .actions-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin-top: 8px;
+}
+
+/* Remplace l'ancienne colonne latérale fixe (230px, sous-utilisée) : bande
+   horizontale sous la zone média, hauteur = contenu réel (pas de hauteur
+   imposée), pleine largeur du card. Texte de statut à gauche, boutons à
+   droite (wrap si la fenêtre est étroite). */
+.capture-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 16px;
+  flex: none;
+}
+
+.capture-footer-status {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.capture-footer-status .status-line {
+  margin: 2px 0;
+}
+
+.capture-footer .actions-row {
+  margin-top: 0;
+  flex: none;
 }
 
 /* Marqueurs de spawn — radar zoomé sur le cluster (picker en création, vue groupée

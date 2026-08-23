@@ -11,6 +11,9 @@
   --text-secondary: #6b7280;
   --text-error: #dc2626;
 }
+html, body {
+  overflow: hidden;
+}
 body {
   font-family: system-ui, -apple-system, sans-serif;
   margin: 0;
@@ -23,11 +26,16 @@ body {
   padding: 10px 14px;
   box-sizing: border-box;
   height: 100vh;
+  overflow: hidden;
 }
 .row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-#dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-accent); animation: pulse 1.6s ease-in-out infinite; }
-#statusText { font-size: 13px; font-weight: 500; }
-.hotkeys { font-size: 12px; color: var(--text-secondary); display: flex; justify-content: space-between; }
+#dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-accent); animation: pulse 1.6s ease-in-out infinite; flex: none; }
+/* Le panneau est un petit rectangle opaque de taille fixe (voir CLAUDE.md) — le
+   texte de statut doit rester sur une seule ligne (les messages Python sont tenus
+   courts en conséquence) plutôt que de déborder verticalement et déclencher une
+   scrollbar sur la fenêtre native. */
+#statusText { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hotkeys { font-size: 11px; color: var(--text-secondary); display: flex; justify-content: space-between; white-space: nowrap; }
 </style>
 </head>
 <body>
@@ -39,6 +47,7 @@ body {
   <div class="hotkeys">
     <span>F9 — capturer</span>
     <span>F6 — tester</span>
+    <span>F7 — map</span>
   </div>
 </div>
 <script src="overlay.js"></script>

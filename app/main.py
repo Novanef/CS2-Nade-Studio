@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import base64
 import ctypes
+import json
 import mimetypes
 import os
 import threading
@@ -19,7 +20,7 @@ from PIL import Image
 
 from core import capture as core_capture
 from core import plugin_client, storage
-from core.capture import CaptureSession, new_lineup_dict
+from core.capture import CaptureSession, new_lineup_dict, updated_lineup_fields
 from core.models import Lineup
 from core.plugin_client import PluginUnavailableError
 
@@ -64,10 +65,20 @@ _overlay_visible = False
 _stop_overlay_polling = threading.Event()
 OVERLAY_POLL_INTERVAL_SECONDS = 1.5
 
+# Dernière map serveur connue, relevée par le même thread de polling — poussée à la
+# fenêtre principale (badge #serverMapBadge) uniquement quand elle change, voir
+# _poll_overlay_visibility().
+_server_map_name: str | None = None
+
 # Lineup actuellement consulté dans la fenêtre principale, synchronisé depuis le JS
 # (Api.set_active_lineup) — utilisé par F6 (on_test_hotkey) pour téléporter vers ce
 # lineup quand aucune capture n'est en cours.
 _active_lineup_id: str | None = None
+
+# mapId attendu par le dernier mismatch de map détecté dans _teleport_to_lineup —
+# permet à F7 (on_fix_map_hotkey) de changer la map sans repasser par le clavier
+# pour retaper son nom (voir aussi la commande chat .changelevel côté plugin).
+_pending_map_fix: str | None = None
 
 
 def _file_to_data_url(root: Path, relative_path: str, cache: dict[str, str]) -> str | None:
@@ -176,23 +187,6 @@ class Api:
         updated = storage.update_lineup(lineup_id, favorite=not lineup.favorite)
         return {"status": "ok", "lineup": self._lineup_view(updated)}
 
-    def update_lineup(self, lineup_id: str, spotName: str, notes: str = "") -> dict:
-        from datetime import datetime, timezone
-
-        spotName = spotName.strip()
-        if not spotName:
-            return {"status": "error", "message": "Le nom du spot est requis."}
-
-        updated = storage.update_lineup(
-            lineup_id,
-            spotName=spotName,
-            notes=notes,
-            updatedAt=datetime.now(timezone.utc).isoformat(),
-        )
-        if updated is None:
-            return {"status": "error", "message": "Lineup introuvable."}
-        return {"status": "saved", "lineup": self._lineup_view(updated)}
-
     def delete_lineup(self, lineup_id: str) -> dict:
         deleted = storage.delete_lineup(lineup_id)
         return {"status": "deleted" if deleted else "error"}
@@ -231,6 +225,61 @@ class Api:
         set_overlay_status("ready")
         return {"status": "started", "spotName": draft.spotName}
 
+    def start_edit_capture(self, lineup_id: str) -> dict:
+        """Réutilise le formulaire de création en mode édition (bouton Éditer) —
+        pré-remplit le draft avec les données du lineup existant."""
+        lineup = storage.get_lineup(lineup_id)
+        if lineup is None:
+            return {"status": "error", "message": "Lineup introuvable."}
+        capture_session.start_edit(lineup)
+        set_overlay_status("ready")
+        return {"status": "started"}
+
+    def update_capture_fields(
+        self,
+        mapId,
+        side,
+        grenadeType,
+        spotName,
+        notes,
+        movement,
+        clickType,
+        category,
+        spawnPoint,
+    ) -> dict:
+        draft = capture_session.draft
+        # En édition d'un lineup "instant", choisir un spawn déjà capturé par un
+        # autre lineup du même groupe bascule l'édition sur ce lineup-là (affiche
+        # sa capture existante) plutôt que d'effacer le waypoint courant — voir
+        # CaptureSession.update_fields pour le cas d'un spawn encore vide.
+        if (
+            draft is not None
+            and draft.editingLineupId is not None
+            and category == "instant"
+            and spawnPoint is not None
+            and spawnPoint != draft.spawnPoint
+        ):
+            sibling = storage.find_lineup_by_spawn(
+                mapId=mapId, side=side, category="instant", spotName=spotName, spawnPoint=spawnPoint
+            )
+            if sibling is not None and sibling.id != draft.editingLineupId:
+                capture_session.start_edit(sibling)
+                set_overlay_status("ready")
+                return self._draft_view(capture_session.draft)
+
+        draft = capture_session.update_fields(
+            mapId=mapId,
+            side=side,
+            grenadeType=grenadeType,
+            spotName=spotName,
+            notes=notes,
+            movement=movement,
+            clickType=clickType,
+            category=category,
+            spawnPoint=spawnPoint,
+        )
+        return self._draft_view(draft)
+
     def get_spawnpoints(self, mapId=None, side=None) -> list[dict]:
         return [sp.to_dict() for sp in storage.list_spawnpoints(mapId=mapId, side=side)]
 
@@ -248,6 +297,7 @@ class Api:
             return {
                 "status": "error",
                 "message": f"Le serveur est sur {server_map or '?'}, pas {expected_map} — change de carte avant de te téléporter.",
+                "expectedMapId": spawnpoint.mapId,
             }
 
         try:
@@ -276,13 +326,30 @@ class Api:
         )
         return {"status": "ok" if ok else "error"}
 
+    def change_server_map(self, map_id: str) -> dict:
+        """Recharge le serveur sur `map_id` (bouton "Changer de map" affiché en cas de
+        mismatch). Ne bloque pas jusqu'à ce que la carte soit chargée — le changelevel
+        prend plusieurs secondes côté serveur, c'est à l'appelant de retenter la
+        téléportation une fois prêt."""
+        try:
+            plugin_client.change_map(map_id)
+        except PluginUnavailableError:
+            return {"status": "error", "message": "Plugin inaccessible."}
+        return {"status": "ok"}
+
+    def get_server_map_name(self) -> str | None:
+        try:
+            return plugin_client.get_map_name()
+        except PluginUnavailableError:
+            return None
+
     def cancel_capture(self) -> dict:
         capture_session.cancel()
         set_overlay_status("idle")
         return {"status": "cancelled"}
 
-    def get_capture_draft(self) -> dict | None:
-        draft = capture_session.draft
+    @staticmethod
+    def _draft_view(draft) -> dict | None:
         if draft is None:
             return None
         return {
@@ -293,16 +360,31 @@ class Api:
             "notes": draft.notes,
             "movement": draft.movement,
             "clickType": draft.clickType,
+            "category": draft.category,
+            "spawnPoint": draft.spawnPoint,
             "waypoint": draft.waypoint.to_dict() if draft.waypoint else None,
+            "editingLineupId": draft.editingLineupId,
         }
 
+    def get_capture_draft(self) -> dict | None:
+        return self._draft_view(capture_session.draft)
+
     def save_capture(self) -> dict:
-        if capture_session.draft is None or capture_session.draft.waypoint is None:
+        draft = capture_session.draft
+        if draft is None or draft.waypoint is None:
             return {"status": "error", "message": "Aucun waypoint capturé à sauvegarder."}
-        if not capture_session.draft.spotName.strip():
+        if not draft.spotName.strip():
             return {"status": "error", "message": "Le nom du spot est requis."}
 
-        lineup_dict = new_lineup_dict(capture_session.draft, source="plugin_capture")
+        if draft.editingLineupId is not None:
+            updated = storage.update_lineup(draft.editingLineupId, **updated_lineup_fields(draft))
+            capture_session.cancel()
+            set_overlay_status("idle")
+            if updated is None:
+                return {"status": "error", "message": "Lineup introuvable (supprimé entre-temps ?)."}
+            return {"status": "saved", "lineup": self._lineup_view(updated)}
+
+        lineup_dict = new_lineup_dict(draft, source="plugin_capture")
         storage.add_lineup(Lineup.from_dict(lineup_dict))
         capture_session.cancel()
         set_overlay_status("idle")
@@ -380,11 +462,16 @@ def _teleport_to_lineup(lineup_id: str) -> dict:
         server_map = plugin_client.get_map_name()
     except PluginUnavailableError:
         return {"status": "error", "message": "Plugin inaccessible."}
+    global _pending_map_fix
     expected_map = f"de_{lineup.mapId}"
     if server_map != expected_map:
+        _pending_map_fix = lineup.mapId
+        # Message affiché sur l'overlay (panneau opaque de taille fixe, voir CLAUDE.md) —
+        # doit rester très court pour ne pas déborder et faire apparaître une scrollbar.
+        # Le détail (F7 / .changelevel) est déjà dans le rappel de hotkeys de l'overlay.
         return {
             "status": "error",
-            "message": f"Le serveur est sur {server_map or '?'}, pas {expected_map}.",
+            "message": f"Mauvaise map ({server_map or '?'})",
         }
 
     try:
@@ -401,6 +488,8 @@ def _teleport_to_lineup(lineup_id: str) -> dict:
         pitch=wp.viewAngle.pitch,
         yaw=wp.viewAngle.yaw,
     )
+    if ok:
+        _pending_map_fix = None
     return {"status": "ok" if ok else "error"}
 
 
@@ -429,13 +518,33 @@ def on_test_hotkey() -> None:
         set_overlay_status("error", result.get("message", "Erreur"))
 
 
+def on_fix_map_hotkey() -> None:
+    """F7 — change la map serveur vers celle attendue par le dernier mismatch
+    détecté par _teleport_to_lineup, sans avoir à ouvrir le chat (voir aussi la
+    commande .changelevel côté plugin, pour changer vers une map arbitraire)."""
+    global _pending_map_fix
+    if _pending_map_fix is None:
+        set_overlay_status("error", "Rien à corriger")
+        return
+
+    map_id = _pending_map_fix
+    try:
+        plugin_client.change_map(map_id)
+    except PluginUnavailableError:
+        set_overlay_status("error", "Plugin inaccessible")
+        return
+
+    _pending_map_fix = None
+    set_overlay_status("captured", f"Chargement de_{map_id}…")
+
+
 def _poll_overlay_visibility() -> None:
     """Affiche/masque l'overlay selon que le serveur + un joueur sont connectés —
     tourne dans un thread démon dédié, sur le même principe que le thread interne de
     `keyboard.add_hotkey(...)` déjà utilisé dans ce fichier. `webview.Window.show()`/
     `.hide()` peuvent être appelés depuis un thread autre que celui de la GUI, comme
     `evaluate_js` l'est déjà depuis le callback thread de `keyboard`."""
-    global _overlay_visible
+    global _overlay_visible, _server_map_name
     while not _stop_overlay_polling.is_set():
         connected = plugin_client.is_player_connected()
         if connected != _overlay_visible:
@@ -445,6 +554,21 @@ def _poll_overlay_visibility() -> None:
                     overlay_window.show() if connected else overlay_window.hide()
                 except Exception:
                     pass
+
+        try:
+            map_name = plugin_client.get_map_name() if connected else None
+        except PluginUnavailableError:
+            map_name = None
+        if map_name != _server_map_name:
+            _server_map_name = map_name
+            if main_window is not None:
+                try:
+                    main_window.evaluate_js(
+                        f"window.onServerMapChanged && window.onServerMapChanged({json.dumps(map_name)})"
+                    )
+                except Exception:
+                    pass
+
         _stop_overlay_polling.wait(OVERLAY_POLL_INTERVAL_SECONDS)
 
 
@@ -457,7 +581,19 @@ _UI_WATCH_EXTENSIONS = {".html", ".js", ".css"}
 
 
 def _ui_file_mtimes(root: Path) -> dict[Path, float]:
-    return {p: p.stat().st_mtime for p in root.rglob("*") if p.suffix in _UI_WATCH_EXTENSIONS}
+    mtimes: dict[Path, float] = {}
+    for p in root.rglob("*"):
+        if p.suffix not in _UI_WATCH_EXTENSIONS:
+            continue
+        try:
+            mtimes[p] = p.stat().st_mtime
+        except OSError:
+            # Fichier supprimé/verrouillé (éditeur, antivirus...) entre le listing et le
+            # stat() — ignoré pour ce tour plutôt que de laisser l'exception remonter :
+            # non catchée ici, elle tuerait silencieusement ce thread daemon pour le
+            # reste de la session (aucune erreur visible, juste plus aucun rechargement).
+            continue
+    return mtimes
 
 
 def _watch_ui_and_reload(window: webview.Window, index_path: Path, poll_interval: float = 0.5) -> None:
@@ -470,13 +606,15 @@ def _watch_ui_and_reload(window: webview.Window, index_path: Path, poll_interval
     last_mtimes = _ui_file_mtimes(root)
     while True:
         time.sleep(poll_interval)
-        current_mtimes = _ui_file_mtimes(root)
-        if current_mtimes != last_mtimes:
-            last_mtimes = current_mtimes
-            try:
+        try:
+            current_mtimes = _ui_file_mtimes(root)
+            if current_mtimes != last_mtimes:
+                last_mtimes = current_mtimes
                 window.load_url(str(index_path))
-            except Exception:
-                pass
+        except Exception:
+            # Idem : une erreur transitoire (fenêtre pas encore prête, etc.) ne doit
+            # jamais arrêter la veille pour le reste de la session.
+            pass
 
 
 def main() -> None:
@@ -507,13 +645,14 @@ def main() -> None:
         width=overlay_w,
         height=overlay_h,
         x=screen_w - overlay_w - margin,
-        y=screen_h - overlay_h - margin,
+        y=margin,
     )
 
     keyboard.add_hotkey("f9", on_capture_hotkey)
     # F10 est par défaut lié à "quitter le jeu" (cs_quit_prompt) dans de nombreuses
     # configurations CS2 — F6 évite ce conflit.
     keyboard.add_hotkey("f6", on_test_hotkey)
+    keyboard.add_hotkey("f7", on_fix_map_hotkey)
 
     def _start_background_threads() -> None:
         threading.Thread(target=_poll_overlay_visibility, daemon=True).start()

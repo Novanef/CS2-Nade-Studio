@@ -1,14 +1,24 @@
 const GRENADE_TYPES = ["smoke", "flash", "molotov", "he", "decoy"];
 const GRENADE_LABELS = { smoke: "Smoke", flash: "Flash", molotov: "Molotov", he: "HE", decoy: "Decoy" };
 
+// grenadeIconSvg, clusterIconSvg, hasRadarCalibration, worldToRadarPercent,
+// computeZoomFrame, zoomedPercentX/Y, groupKey, clusterByProximity : voir logic.js
+// (fonctions pures, testées sans DOM dans logic.test.js — chargé avant ce fichier
+// dans index.html).
+
 const state = {
   maps: [],
   lineups: [],
-  filters: { mapId: null, side: "CT", grenadeType: null },
+  filters: { mapId: null, side: null, grenadeType: null, instantOnly: false },
   search: "",
   selectedLineupId: null,
   selectedInstantSpot: null,
+  serverMapName: null,
 };
+
+// Non-null lorsque #view-create est ouverte en mode édition (bouton Éditer) plutôt
+// qu'en création — voir openEditLineupView/armCapture/saveCapture.
+let editingLineupId = null;
 
 // Incrémenté à chaque renderLineups() — les rendus async (fetch de screenshots,
 // spawns...) vérifient qu'ils sont toujours la dernière génération avant d'écrire
@@ -22,39 +32,12 @@ function api() {
 }
 
 // --- Radar (voir CLAUDE.md pour la formule de calibration) ---
-
-function hasRadarCalibration(map) {
-  return !!map && map.radarPosX != null && map.radarPosY != null && map.radarScale != null;
-}
-
-function worldToRadarPercent(map, x, y) {
-  const px = (x - map.radarPosX) / map.radarScale;
-  const py = (map.radarPosY - y) / map.radarScale;
-  return { leftPct: (px / 1024) * 100, topPct: (py / 1024) * 100 };
-}
+// hasRadarCalibration/worldToRadarPercent/computeZoomFrame/zoomedPercentX/Y : logic.js
 
 function setRadarMarker(markerEl, leftPct, topPct) {
   markerEl.style.left = `${leftPct}%`;
   markerEl.style.top = `${topPct}%`;
   markerEl.classList.remove("hidden");
-}
-
-// Calcule un cadrage (échelle + décalage, en % de l'image 0-100) qui zoome sur le
-// cluster de points donnés plutôt que d'afficher toute la carte — utilisé pour les
-// spawns d'instant smokes, groupés sur une petite zone contrairement aux positions
-// de lancer classiques dispersées sur toute la carte.
-function computeZoomFrame(points, paddingFrac = 0.35, minSpanPct = 12) {
-  const xs = points.map((p) => p.leftPct);
-  const ys = points.map((p) => p.topPct);
-  const minX = Math.min(...xs);
-  const maxX = Math.max(...xs);
-  const minY = Math.min(...ys);
-  const maxY = Math.max(...ys);
-  const span = Math.max(maxX - minX, maxY - minY, minSpanPct) * (1 + paddingFrac);
-  const half = span / 2;
-  const cx = Math.min(Math.max((minX + maxX) / 2, half), 100 - half);
-  const cy = Math.min(Math.max((minY + maxY) / 2, half), 100 - half);
-  return { minX: cx - half, minY: cy - half, span };
 }
 
 function applyZoomFrameToImage(img, frame) {
@@ -63,14 +46,6 @@ function applyZoomFrameToImage(img, frame) {
   img.style.height = `${scale * 100}%`;
   img.style.left = `${-frame.minX * scale}%`;
   img.style.top = `${-frame.minY * scale}%`;
-}
-
-function zoomedPercentX(pct, frame) {
-  return (pct - frame.minX) * (100 / frame.span);
-}
-
-function zoomedPercentY(pct, frame) {
-  return (pct - frame.minY) * (100 / frame.span);
 }
 
 // Rend un radar zoomé avec un marqueur numéroté par point (spawns) — réutilisé pour
@@ -114,6 +89,25 @@ async function setRadarImageSrc(imgEl, radarImageRef) {
   }
 }
 
+// --- Badge de map serveur (purement informatif, voir computeServerMapBadge dans
+// logic.js) — poussé depuis Python à chaque changement de map détecté par le thread
+// de polling existant (_poll_overlay_visibility, voir main.py), plus un appel direct
+// au chargement pour peindre le badge avant le premier tick de ce polling. ---
+
+function refreshServerMapBadge() {
+  const badge = document.getElementById("serverMapBadge");
+  const { text, variant } = computeServerMapBadge(state.serverMapName, state.filters.mapId);
+  badge.textContent = text;
+  badge.classList.remove("hidden");
+  badge.classList.toggle("warn", variant === "warn");
+}
+
+function onServerMapChanged(mapName) {
+  state.serverMapName = mapName;
+  refreshServerMapBadge();
+}
+window.onServerMapChanged = onServerMapChanged;
+
 function showFatalError(err) {
   const el = document.getElementById("detailSpotName");
   if (el) el.textContent = "Erreur JS : " + (err && err.message ? err.message : err);
@@ -153,7 +147,11 @@ async function initInner() {
   mapSelect.addEventListener("change", () => {
     state.filters.mapId = mapSelect.value;
     refreshLineups();
+    refreshServerMapBadge();
   });
+
+  state.serverMapName = await api().get_server_map_name();
+  refreshServerMapBadge();
   formMapSelect.addEventListener("change", () => {
     if (document.getElementById("form-category").value === "instant") loadInstantSpawnPanel();
     armCapture();
@@ -204,6 +202,29 @@ function setSide(side) {
   refreshLineups();
 }
 
+// Pas de bouton "Tous" distinct : cliquer le camp déjà actif le désélectionne
+// (retour à side=null, aucun filtre), cliquer l'autre camp le remplace.
+function toggleSide(side) {
+  setSide(state.filters.side === side ? null : side);
+}
+
+function toggleLineupPanel(force) {
+  const wrap = document.getElementById("lineupPanelWrap");
+  const open = typeof force === "boolean" ? force : !wrap.classList.contains("open");
+  wrap.classList.toggle("open", open);
+  document.getElementById("btnToggleLineupPanel").classList.toggle("active", open);
+}
+
+// Le panneau pousse .radar-slot (voir .radar-fullscreen-layout, style.css) : sa
+// taille en px (fitRadarFullscreenSquare) doit être recalculée une fois la
+// transition de largeur terminée, sinon on mesure une taille intermédiaire.
+document.getElementById("lineupPanelWrap").addEventListener("transitionend", (evt) => {
+  if (evt.propertyName !== "width") return;
+  if (!document.getElementById("view-radar-fullscreen").classList.contains("hidden")) {
+    fitRadarFullscreenSquare();
+  }
+});
+
 function onSearchInput() {
   state.search = document.getElementById("searchInput").value.trim().toLowerCase();
   renderLineups();
@@ -221,23 +242,33 @@ function standardLineups() {
   return state.lineups.filter((l) => l.category !== "instant");
 }
 
-// Regroupe les lineups "instant" par spotName — même clé de regroupement que
-// documentée dans docs/structure-donnees-lineups.md (mapId/side déjà filtrés par
-// get_lineups, donc regrouper par spotName suffit ici).
+// groupKey : logic.js (clé de regroupement composite side::spotName).
+
+// Regroupe les lineups "instant" par side+spotName (mapId déjà filtré par get_lineups).
 function instantGroups() {
-  const byName = new Map();
+  const byKey = new Map();
   for (const l of state.lineups) {
     if (l.category !== "instant") continue;
-    if (!byName.has(l.spotName)) byName.set(l.spotName, { spotName: l.spotName, grenadeType: l.grenadeType, lineups: [] });
-    byName.get(l.spotName).lineups.push(l);
+    const key = `${l.side}::${l.spotName}`;
+    if (!byKey.has(key)) byKey.set(key, { spotName: l.spotName, side: l.side, grenadeType: l.grenadeType, lineups: [] });
+    byKey.get(key).lineups.push(l);
   }
-  return [...byName.values()];
+  return [...byKey.values()];
 }
 
 function visibleLineups() {
+  // Filtre "Instant uniquement" : ne montre aucun lineup standard dans la liste,
+  // ceux-ci ont leur propre affichage groupé (voir visibleInstantGroups()).
+  if (state.filters.instantOnly) return [];
   const items = standardLineups();
   if (!state.search) return items;
   return items.filter((l) => l.spotName.toLowerCase().includes(state.search));
+}
+
+function toggleInstantOnlyFilter() {
+  state.filters.instantOnly = !state.filters.instantOnly;
+  document.getElementById("instantOnlyToggle").classList.toggle("active", state.filters.instantOnly);
+  renderLineups();
 }
 
 function visibleInstantGroups() {
@@ -251,15 +282,13 @@ function renderLineups() {
   const lineups = visibleLineups();
   const groups = visibleInstantGroups();
 
-  if (state.selectedInstantSpot && !groups.some((g) => g.spotName === state.selectedInstantSpot)) {
+  if (state.selectedInstantSpot && !groups.some((g) => groupKey(g) === state.selectedInstantSpot)) {
     state.selectedInstantSpot = null;
   }
   if (!state.selectedInstantSpot) {
     const selected = lineups.find((l) => l.id === state.selectedLineupId) || lineups[0] || null;
     state.selectedLineupId = selected ? selected.id : null;
   }
-
-  exitEditMode();
 
   const isGroupView = !!state.selectedInstantSpot;
   document.getElementById("browseMediaStage").classList.toggle("hidden", isGroupView);
@@ -279,14 +308,14 @@ function renderLineups() {
   document.getElementById(isGroupView ? "zoomInset" : "instantGroupZoomInset").classList.add("hidden");
 
   if (isGroupView) {
-    renderInstantGroupView(groups.find((g) => g.spotName === state.selectedInstantSpot), generation);
+    renderInstantGroupView(groups.find((g) => groupKey(g) === state.selectedInstantSpot), generation);
   } else {
     renderStandardDetail(lineups.find((l) => l.id === state.selectedLineupId) || null, generation);
   }
 
   const map = state.maps.find((m) => m.id === state.filters.mapId);
   document.getElementById("stripLabel").textContent =
-    `Autres lineups — ${map ? map.displayName : ""} / ${state.filters.side}`;
+    `Autres lineups — ${map ? map.displayName : ""} / ${state.filters.side || "Tous les camps"}`;
 
   const strip = document.getElementById("lineupStrip");
   strip.innerHTML = "";
@@ -303,17 +332,24 @@ function renderLineups() {
   }
   for (const g of groups) {
     const chip = document.createElement("div");
-    chip.className = "chip" + (isGroupView && g.spotName === state.selectedInstantSpot ? " active" : "");
+    chip.className = "chip" + (isGroupView && groupKey(g) === state.selectedInstantSpot ? " active" : "");
+    const sideLabel = state.filters.side === null ? ` (${g.side})` : "";
     chip.innerHTML =
-      `${g.spotName}<br><span class="muted">${GRENADE_LABELS[g.grenadeType] || g.grenadeType} — Instant · ${g.lineups.length}</span>`;
+      `${g.spotName}${sideLabel}<br><span class="muted">${GRENADE_LABELS[g.grenadeType] || g.grenadeType} — Instant · ${g.lineups.length}</span>`;
     chip.onclick = () => {
-      state.selectedInstantSpot = g.spotName;
+      state.selectedInstantSpot = groupKey(g);
       renderLineups();
     };
     strip.appendChild(chip);
   }
 
   if (!isGroupView) syncActiveLineup();
+
+  // Le panneau de filtres est partagé avec le radar plein écran (voir index.html) —
+  // un changement de filtre doit s'y refléter immédiatement sans fermer cette vue.
+  if (!document.getElementById("view-radar-fullscreen").classList.contains("hidden")) {
+    renderRadarFullscreenMarkers();
+  }
 }
 
 function renderStandardDetail(selected, generation) {
@@ -381,14 +417,15 @@ function syncActiveLineup() {
 async function renderInstantGroupView(group, generation) {
   if (!group) return;
 
-  document.getElementById("instantGroupTitle").textContent = group.spotName;
+  document.getElementById("instantGroupTitle").textContent =
+    state.filters.side === null ? `${group.spotName} (${group.side})` : group.spotName;
 
   const map = state.maps.find((m) => m.id === state.filters.mapId);
   const radarInset = document.getElementById("instantGroupRadarInset");
   const wrap = document.getElementById("instantGroupRadarWrap");
   const img = document.getElementById("instantGroupRadarImg");
 
-  const spawns = map ? await api().get_spawnpoints(map.id, state.filters.side) : [];
+  const spawns = map ? await api().get_spawnpoints(map.id, group.side) : [];
   if (generation !== renderGeneration) return; // un rendu plus récent a démarré entre-temps
   const lineupBySpawnId = new Map(group.lineups.filter((l) => l.spawnPoint).map((l) => [l.spawnPoint, l]));
   instantGroupEntries = spawns
@@ -493,9 +530,7 @@ async function renderInstantShotPreview(generation) {
 function openSelectedSpawnLineup() {
   const entry = instantGroupEntries.find((e) => e.spawn.id === instantGroupSelectedSpawnId);
   if (!entry?.lineup) return;
-  state.selectedInstantSpot = null;
-  state.selectedLineupId = entry.lineup.id;
-  renderLineups();
+  openEditLineupView(entry.lineup);
 }
 
 // --- Actions sur le lineup sélectionné (favori / édition / suppression) ---
@@ -517,48 +552,46 @@ async function toggleFavorite() {
   await refreshLineups();
 }
 
-function startEditLineup() {
-  const selected = selectedLineup();
-  if (!selected) return;
-  document.getElementById("detailSpotName").classList.add("hidden");
-  document.getElementById("detailNotes").classList.add("hidden");
-  const spotInput = document.getElementById("detailSpotNameInput");
-  const notesInput = document.getElementById("detailNotesInput");
-  spotInput.value = selected.spotName;
-  notesInput.value = selected.notes || "";
-  spotInput.classList.remove("hidden");
-  notesInput.classList.remove("hidden");
-  document.getElementById("btnEditLineup").classList.add("hidden");
-  document.getElementById("btnToggleFavorite").classList.add("hidden");
-  document.getElementById("btnDeleteLineup").classList.add("hidden");
-  document.getElementById("btnSaveEditLineup").classList.remove("hidden");
-  document.getElementById("btnCancelEditLineup").classList.remove("hidden");
-}
+// Réutilise le formulaire de création complet ("view-create") en mode édition :
+// pré-remplit tous les champs depuis le lineup sélectionné, la sauvegarde met à
+// jour ce lineup au lieu d'en créer un nouveau (voir armCapture/saveCapture).
+async function openEditLineupView(lineup) {
+  lineup = lineup || selectedLineup();
+  if (!lineup) return;
+  editingLineupId = lineup.id;
 
-function exitEditMode() {
-  document.getElementById("detailSpotName").classList.remove("hidden");
-  document.getElementById("detailNotes").classList.remove("hidden");
-  document.getElementById("detailSpotNameInput").classList.add("hidden");
-  document.getElementById("detailNotesInput").classList.add("hidden");
-  document.getElementById("btnEditLineup").classList.remove("hidden");
-  document.getElementById("btnToggleFavorite").classList.remove("hidden");
-  document.getElementById("btnDeleteLineup").classList.remove("hidden");
-  document.getElementById("btnSaveEditLineup").classList.add("hidden");
-  document.getElementById("btnCancelEditLineup").classList.add("hidden");
-}
+  document.getElementById("view-browse").classList.add("hidden");
+  document.getElementById("view-create").classList.remove("hidden");
+  document.getElementById("lineupPanelWrap").classList.add("hidden");
+  document.getElementById("createViewTitle").textContent = "Éditer lineup";
 
-function cancelEditLineup() {
-  exitEditMode();
-}
+  document.getElementById("form-mapId").value = lineup.mapId;
+  document.getElementById("form-side").value = lineup.side;
+  document.getElementById("form-grenadeType").value = lineup.grenadeType;
+  document.getElementById("form-category").value = lineup.category;
+  document.getElementById("form-spotName").value = lineup.spotName;
+  document.getElementById("form-notes").value = lineup.notes || "";
+  const wp = getFirstWaypoint(lineup);
+  document.getElementById("form-movement").value = wp ? wp.movement : "stand";
+  document.getElementById("form-clickType").value = wp && wp.clickType ? wp.clickType : "left";
 
-async function saveEditLineup() {
-  const selected = selectedLineup();
-  if (!selected) return;
-  const spotName = document.getElementById("detailSpotNameInput").value.trim();
-  if (!spotName) return;
-  const notes = document.getElementById("detailNotesInput").value;
-  await api().update_lineup(selected.id, spotName, notes);
-  await refreshLineups();
+  await api().start_edit_capture(lineup.id);
+
+  captureHasWaypoint = !!wp;
+  updateSaveButtonState();
+  document.getElementById("captureStatusLine").textContent = wp
+    ? "Point existant conservé — vise puis F9 en jeu pour le recapturer si besoin."
+    : "Aucun point capturé — vise puis F9 en jeu pour capturer.";
+  await updateCaptureScreenshot(wp ? wp.screenshotRef : null);
+
+  toggleInstantPanel();
+  if (lineup.category === "instant") {
+    await loadInstantSpawnPanel(); // remet instantSelectedSpawnId à null, réaffecté ci-dessous
+    instantSelectedSpawnId = lineup.spawnPoint;
+    document.getElementById("btnTeleportSpawn").disabled = !instantSelectedSpawnId;
+    renderInstantPickerMarkers();
+  }
+  fitCreateRadarSquares();
 }
 
 async function deleteLineup() {
@@ -579,7 +612,7 @@ async function updateBrowseRadar(map, selectedLineup, generation) {
   const marker = document.getElementById("radarMarker");
   const startWp = getFirstWaypoint(selectedLineup);
 
-  if (!hasRadarCalibration(map) || !startWp) {
+  if (!hasRadarCalibration(map)) {
     inset.classList.add("hidden");
     return;
   }
@@ -587,9 +620,226 @@ async function updateBrowseRadar(map, selectedLineup, generation) {
   await setRadarImageSrc(img, map.radarImageRef);
   if (generation !== renderGeneration) return; // un rendu plus récent a démarré entre-temps
   inset.classList.remove("hidden");
-  const { leftPct, topPct } = worldToRadarPercent(map, startWp.position.x, startWp.position.y);
-  setRadarMarker(marker, leftPct, topPct);
+  if (startWp) {
+    const { leftPct, topPct } = worldToRadarPercent(map, startWp.position.x, startWp.position.y);
+    setRadarMarker(marker, leftPct, topPct);
+  } else {
+    marker.classList.add("hidden");
+  }
 }
+
+// --- Vue "Radar plein écran" : toutes les positions standards filtrées d'un coup ---
+//
+// Les lineups instant n'y apparaissent jamais — plusieurs spawns très proches pour
+// un même spot les ferait se marcher dessus, et ils ont déjà leur propre flux dédié
+// (regroupement par spot + radar zoomé sur le cluster, voir renderInstantGroupView).
+
+// Même liste que le panneau latéral (catégorie standard uniquement) — state.lineups
+// est déjà filtré par carte/camp/type de grenade côté backend (voir refreshLineups) ;
+// seul le texte de recherche doit être ré-appliqué ici, comme dans visibleLineups().
+function lineupsForRadar() {
+  return standardLineups().filter(
+    (l) => !state.search || l.spotName.toLowerCase().includes(state.search)
+  );
+}
+
+function openRadarFullscreen() {
+  document.getElementById("view-browse").classList.add("hidden");
+  document.getElementById("view-radar-fullscreen").classList.remove("hidden");
+  // Le panneau de filtres est partagé (pas dupliqué) — on le déplace dans cette vue
+  // pour qu'il pousse le radar plutôt que de flotter par-dessus (voir index.html).
+  document.querySelector(".radar-fullscreen-layout").appendChild(document.getElementById("lineupPanelWrap"));
+  fitRadarFullscreenSquare();
+  renderRadarFullscreenMarkers();
+}
+
+function closeRadarFullscreen() {
+  closeRadarClusterPopover();
+  document.getElementById("view-radar-fullscreen").classList.add("hidden");
+  document.getElementById("view-browse").classList.remove("hidden");
+  // Ramène le panneau de filtres dans la vue de consultation (voir openRadarFullscreen).
+  document.querySelector(".browse-layout").appendChild(document.getElementById("lineupPanelWrap"));
+}
+
+// clusterByProximity : logic.js (regroupement glouton par proximité visuelle en px).
+
+async function renderRadarFullscreenMarkers() {
+  const generation = ++renderGeneration;
+  const map = state.maps.find((m) => m.id === state.filters.mapId);
+  const img = document.getElementById("radarFullscreenImg");
+  const wrap = document.getElementById("radarFullscreenWrap");
+  const empty = document.getElementById("radarFullscreenEmpty");
+
+  document.getElementById("radarFullscreenTitle").textContent = map ? map.displayName : "";
+
+  wrap.querySelectorAll(".radar-marker-icon").forEach((el) => el.remove());
+  closeRadarClusterPopover();
+
+  if (!hasRadarCalibration(map)) {
+    img.removeAttribute("src");
+    empty.classList.remove("hidden");
+    return;
+  }
+  empty.classList.add("hidden");
+
+  await setRadarImageSrc(img, map.radarImageRef);
+  if (generation !== renderGeneration) return; // un rendu plus récent a démarré entre-temps
+
+  // Le seuil de clustering se calcule en pixels réels — .radar-wrap est déjà à sa
+  // taille finale grâce à fitRadarFullscreenSquare(), appelée avant ce rendu.
+  const size = wrap.clientWidth || 1;
+  const clusterThresholdPx = 28;
+
+  // Regroupement par PROXIMITÉ seule, tous types de grenade confondus — grouper par
+  // type d'abord aurait laissé deux lineups de types différents à la même position
+  // se superposer pile l'un sur l'autre (bug signalé : une flash totalement cachée
+  // derrière une smoke). L'icône affichée est celle du premier lineup du cluster ;
+  // le popover (ci-dessous) précise le type de chaque entrée pour lever l'ambiguïté.
+  const points = [];
+  for (const l of lineupsForRadar()) {
+    const wp = getFirstWaypoint(l);
+    if (!wp) continue;
+    const { leftPct, topPct } = worldToRadarPercent(map, wp.position.x, wp.position.y);
+    points.push({
+      lineup: l,
+      leftPct,
+      topPct,
+      leftPx: (leftPct / 100) * size,
+      topPx: (topPct / 100) * size,
+    });
+  }
+
+  for (const cluster of clusterByProximity(points, clusterThresholdPx)) {
+    const leftPct = (cluster.leftPx / size) * 100;
+    const topPct = (cluster.topPx / size) * 100;
+    const btn = document.createElement("button");
+    btn.className = "radar-marker-icon";
+    btn.style.left = `${leftPct}%`;
+    btn.style.top = `${topPct}%`;
+    btn.innerHTML = clusterIconSvg(cluster.items.map((l) => l.grenadeType));
+
+    if (cluster.items.length === 1) {
+      const lineup = cluster.items[0];
+      btn.onclick = () => selectLineupFromRadar(lineup.id);
+      // Popover identique à celui d'un groupe (pas de `title` natif : son délai
+      // d'apparition du navigateur rendait la description perceptiblement lente).
+      btn.onmouseenter = () => openRadarClusterPopover([lineup], btn, { interactive: false });
+      btn.onmouseleave = () => closeRadarClusterPopover();
+    } else {
+      btn.title = `${cluster.items.length} lineups`;
+      const badge = document.createElement("span");
+      badge.className = "marker-badge";
+      badge.textContent = String(cluster.items.length);
+      btn.appendChild(badge);
+      btn.onclick = (evt) => {
+        evt.stopPropagation();
+        openRadarClusterPopover(cluster.items, btn);
+      };
+    }
+    wrap.appendChild(btn);
+  }
+}
+
+function selectLineupFromRadar(lineupId) {
+  state.selectedInstantSpot = null;
+  state.selectedLineupId = lineupId;
+  closeRadarFullscreen();
+  renderLineups();
+}
+
+let radarClusterPopoverEl = null;
+let radarClusterOutsideClickHandler = null;
+
+function closeRadarClusterPopover() {
+  if (radarClusterPopoverEl) {
+    radarClusterPopoverEl.remove();
+    radarClusterPopoverEl = null;
+  }
+  if (radarClusterOutsideClickHandler) {
+    document.removeEventListener("click", radarClusterOutsideClickHandler);
+    radarClusterOutsideClickHandler = null;
+  }
+}
+
+// Positionne le popover en pixels, ancré au marqueur mais toujours contenu dans le
+// radar (`.radar-wrap` a overflow:hidden — un positionnement en %/transform naïf le
+// fait dépasser et se faire couper net près d'un bord, voir bug signalé).
+function positionClusterPopover(popover, anchorEl, wrap) {
+  const margin = 16;
+  const wrapRect = wrap.getBoundingClientRect();
+  const anchorRect = anchorEl.getBoundingClientRect();
+  const popRect = popover.getBoundingClientRect();
+
+  let left = anchorRect.right - wrapRect.left + margin;
+  if (wrapRect.left + left + popRect.width > wrapRect.right) {
+    // Ne rentre pas à droite de l'ancre → on bascule à gauche.
+    left = anchorRect.left - wrapRect.left - margin - popRect.width;
+  }
+  left = Math.max(4, Math.min(left, wrapRect.width - popRect.width - 4));
+
+  let top = anchorRect.top - wrapRect.top + anchorRect.height / 2 - popRect.height / 2;
+  top = Math.max(4, Math.min(top, wrapRect.height - popRect.height - 4));
+
+  popover.style.left = `${left}px`;
+  popover.style.top = `${top}px`;
+}
+
+// `interactive: false` (survol d'un marqueur seul) saute l'écouteur de clic
+// extérieur : le popover se referme déjà via onmouseleave côté appelant, un
+// listener en plus ne ferait que le fermer en double sans utilité.
+function openRadarClusterPopover(lineups, anchorEl, { interactive = true } = {}) {
+  closeRadarClusterPopover();
+
+  const wrap = document.getElementById("radarFullscreenWrap");
+  const popover = document.createElement("div");
+  popover.className = "radar-cluster-popover";
+
+  for (const l of lineups) {
+    const btn = document.createElement("button");
+    // Le type de grenade n'est pas répété en texte ici : l'icône de l'entrée (propre
+    // à chaque lineup, contrairement à celle du marqueur qui n'en montre qu'une pour
+    // tout le cluster) le montre déjà.
+    btn.innerHTML =
+      `<span class="popover-entry-icon">${grenadeIconSvg(l.grenadeType)}</span>` +
+      `<span>${l.spotName}${l.throwLabel ? `<br><span class="muted">${l.throwLabel}</span>` : ""}</span>`;
+    btn.onclick = () => selectLineupFromRadar(l.id);
+    popover.appendChild(btn);
+  }
+
+  wrap.appendChild(popover);
+  radarClusterPopoverEl = popover;
+  positionClusterPopover(popover, anchorEl, wrap);
+
+  if (!interactive) return;
+
+  // Écouteur ajouté après coup (pas dans le même tick que le clic qui ouvre le
+  // popover, sinon ce même clic — déjà stoppé par evt.stopPropagation() sur le
+  // marqueur — le refermerait immédiatement).
+  setTimeout(() => {
+    radarClusterOutsideClickHandler = (evt) => {
+      if (!popover.contains(evt.target)) closeRadarClusterPopover();
+    };
+    document.addEventListener("click", radarClusterOutsideClickHandler);
+  }, 0);
+}
+
+// Même principe que fitCreateRadarSquares() (voir plus bas) : caler le radar
+// au plus grand carré qui rentre dans l'espace vertical restant.
+function fitRadarFullscreenSquare() {
+  const slot = document.querySelector("#view-radar-fullscreen .radar-slot");
+  const wrap = document.getElementById("radarFullscreenWrap");
+  if (!slot || !wrap) return;
+  const size = Math.max(0, Math.min(slot.clientWidth, slot.clientHeight));
+  if (size > 0) {
+    wrap.style.width = `${size}px`;
+    wrap.style.height = `${size}px`;
+  } else {
+    wrap.style.width = "";
+    wrap.style.height = "";
+  }
+}
+
+window.addEventListener("resize", fitRadarFullscreenSquare);
 
 async function updateDetailScreenshot(selectedLineup, generation) {
   const img = document.getElementById("detailScreenshotImg");
@@ -639,8 +889,13 @@ async function updateDetailScreenshot(selectedLineup, generation) {
 function openCreateView() {
   document.getElementById("view-browse").classList.add("hidden");
   document.getElementById("view-create").classList.remove("hidden");
+  // Le panneau de filtres flotte par-dessus consultation/radar, mais pas la création
+  // (formulaire, pas de liste à filtrer) — voir index.html.
+  document.getElementById("lineupPanelWrap").classList.add("hidden");
+  editingLineupId = null;
+  document.getElementById("createViewTitle").textContent = "Nouveau lineup";
   if (state.filters.mapId) document.getElementById("form-mapId").value = state.filters.mapId;
-  document.getElementById("form-side").value = state.filters.side;
+  document.getElementById("form-side").value = state.filters.side || "CT";
   document.getElementById("btnSaveCapture").disabled = true;
   updateCaptureScreenshot(null);
   toggleInstantPanel();
@@ -648,24 +903,25 @@ function openCreateView() {
   fitCreateRadarSquares();
 }
 
-// Taille des radars de #view-create imposée en pixels plutôt qu'en vh : un vh
+// Taille du radar de #view-create imposée en pixels plutôt qu'en vh : un vh
 // devine une proportion de l'écran sans savoir combien le reste du formulaire
-// (champs, boutons, texte de statut) occupe réellement — un radar carré basé
-// sur un pourcentage d'écran finit soit trop grand (dépasse, scroll forcé) soit
-// trop petit selon la résolution. Ici .radar-slot (flex:1 en cascade depuis
-// #view-create, voir style.css) reçoit déjà tout l'espace vertical restant une
-// fois le reste du formulaire mis en page ; on mesure ce rectangle et on cale
-// le radar au plus grand carré qui y rentre — fiable à n'importe quelle taille
-// de fenêtre/résolution, recalculé au redimensionnement.
+// occupe réellement. #instantSpawnPanel est étiré en hauteur par .capture-media
+// (flex row, stretch par défaut) — on lit cette hauteur déjà connue puis on
+// fixe la LARGEUR du panneau au même nombre de pixels (carré) : le panneau ne
+// prend ainsi que la largeur nécessaire, le screenshot (flex:1) récupère le
+// reste. Recalculé au redimensionnement (voir listener "resize" plus bas).
 function fitCreateRadarSquares() {
   document.querySelectorAll("#view-create .radar-slot").forEach((slot) => {
     const wrap = slot.querySelector(".radar-wrap");
-    if (!wrap) return;
-    const size = Math.max(0, Math.min(slot.clientWidth, slot.clientHeight));
+    const panel = slot.parentElement; // #instantSpawnPanel
+    if (!wrap || !panel) return;
+    const size = Math.max(0, panel.clientHeight);
     if (size > 0) {
+      panel.style.width = `${size}px`;
       wrap.style.width = `${size}px`;
       wrap.style.height = `${size}px`;
     } else {
+      panel.style.width = "";
       wrap.style.width = "";
       wrap.style.height = "";
     }
@@ -747,18 +1003,37 @@ function selectInstantSpawn(spawnId) {
 
 async function teleportToSelectedSpawn() {
   if (!instantSelectedSpawnId) return;
+  const fixBtn = document.getElementById("btnFixMapMismatch");
+  fixBtn.classList.add("hidden");
   document.getElementById("instantPickerStatusLine").textContent = "Téléportation...";
   const result = await api().teleport_to_spawn(instantSelectedSpawnId);
   document.getElementById("instantPickerStatusLine").textContent =
     result.status === "ok"
       ? "Téléporté — vise puis F9 pour capturer."
       : result.message || "Erreur de téléportation.";
+
+  if (result.status === "error" && result.expectedMapId) {
+    fixBtn.classList.remove("hidden");
+    fixBtn.onclick = () => fixMapMismatch(result.expectedMapId);
+  }
+}
+
+async function fixMapMismatch(mapId) {
+  document.getElementById("btnFixMapMismatch").classList.add("hidden");
+  document.getElementById("instantPickerStatusLine").textContent = "Chargement de la map...";
+  const result = await api().change_server_map(mapId);
+  document.getElementById("instantPickerStatusLine").textContent =
+    result.status === "ok"
+      ? "Chargement de la map... réessaie la téléportation dans quelques secondes."
+      : result.message || "Erreur lors du changement de map.";
 }
 
 async function closeCreateView() {
   await api().cancel_capture();
+  editingLineupId = null;
   document.getElementById("view-create").classList.add("hidden");
   document.getElementById("view-browse").classList.remove("hidden");
+  document.getElementById("lineupPanelWrap").classList.remove("hidden");
   await refreshLineups();
 }
 
@@ -779,21 +1054,53 @@ function updateSaveButtonState() {
 // pertinent (voir les écouteurs "change"/"input" dans initInner).
 async function armCapture() {
   const category = document.getElementById("form-category").value;
+  const mapId = document.getElementById("form-mapId").value;
+  const side = document.getElementById("form-side").value;
+  const grenadeType = document.getElementById("form-grenadeType").value;
+  const spotName = document.getElementById("form-spotName").value.trim();
+  const notes = document.getElementById("form-notes").value;
+  const movement = document.getElementById("form-movement").value;
+  const clickType = document.getElementById("form-clickType").value;
+  const spawnPoint = category === "instant" ? instantSelectedSpawnId : null;
+
+  if (editingLineupId) {
+    // En édition, changer un champ ne doit pas systématiquement invalider le
+    // waypoint capturé — seul un changement de carte/camp/spawn le fait (la
+    // position n'a alors plus de sens), voir CaptureSession.update_fields dans
+    // capture.py. Cas particulier "instant" : si le spawn choisi est déjà capturé
+    // par un AUTRE lineup du même groupe, l'édition bascule sur ce lineup-là
+    // (voir Api.update_capture_fields côté Python) — il faut alors resynchroniser
+    // tout le formulaire avec ses propres valeurs plutôt que la sélection actuelle.
+    const draft = await api().update_capture_fields(
+      mapId, side, grenadeType, spotName, notes, movement, clickType, category, spawnPoint
+    );
+
+    if (draft.editingLineupId !== editingLineupId) {
+      editingLineupId = draft.editingLineupId;
+      document.getElementById("form-grenadeType").value = draft.grenadeType;
+      document.getElementById("form-spotName").value = draft.spotName;
+      document.getElementById("form-notes").value = draft.notes || "";
+      document.getElementById("form-movement").value = draft.movement;
+      document.getElementById("form-clickType").value = draft.clickType;
+      instantSelectedSpawnId = draft.spawnPoint;
+      document.getElementById("btnTeleportSpawn").disabled = !instantSelectedSpawnId;
+      renderInstantPickerMarkers();
+    }
+
+    captureHasWaypoint = !!draft.waypoint;
+    updateSaveButtonState();
+    document.getElementById("captureStatusLine").textContent = draft.waypoint
+      ? "Point conservé — vise puis F9 en jeu pour le recapturer si besoin."
+      : "Carte/camp/spawn changé : le point existant n'est plus valide — vise puis F9 pour capturer.";
+    await updateCaptureScreenshot(draft.waypoint ? draft.waypoint.screenshotRef : null);
+    return;
+  }
+
   // start_capture crée un nouveau brouillon (sans waypoint) à chaque appel — un champ
   // modifié après une capture F9 invalide donc ce waypoint côté serveur, il faut
   // recapturer (voir CaptureSession.start dans capture.py).
   captureHasWaypoint = false;
-  await api().start_capture(
-    document.getElementById("form-mapId").value,
-    document.getElementById("form-side").value,
-    document.getElementById("form-grenadeType").value,
-    document.getElementById("form-spotName").value.trim(),
-    document.getElementById("form-notes").value,
-    document.getElementById("form-movement").value,
-    document.getElementById("form-clickType").value,
-    category,
-    category === "instant" ? instantSelectedSpawnId : null
-  );
+  await api().start_capture(mapId, side, grenadeType, spotName, notes, movement, clickType, category, spawnPoint);
   updateSaveButtonState();
   document.getElementById("captureStatusLine").textContent = "Prêt — vise puis appuie sur F9 en jeu pour capturer.";
 }
@@ -838,7 +1145,7 @@ async function saveCapture() {
     return;
   }
 
-  if (document.getElementById("form-category").value === "instant") {
+  if (!editingLineupId && document.getElementById("form-category").value === "instant") {
     // Reste dans la vue de création — répétition manuelle par spawn (voir plan) :
     // le spawn qui vient d'être sauvegardé apparaît "done" dans le picker, prêt
     // pour en choisir un autre sans ressaisir tout le formulaire.
@@ -852,7 +1159,15 @@ async function saveCapture() {
 
   document.getElementById("view-create").classList.add("hidden");
   document.getElementById("view-browse").classList.remove("hidden");
-  state.selectedLineupId = result.lineup.id;
+  document.getElementById("lineupPanelWrap").classList.remove("hidden");
+  if (result.lineup.category === "instant") {
+    state.selectedInstantSpot = `${result.lineup.side}::${result.lineup.spotName}`;
+    state.selectedLineupId = null;
+  } else {
+    state.selectedInstantSpot = null;
+    state.selectedLineupId = result.lineup.id;
+  }
+  editingLineupId = null;
   await refreshLineups();
 }
 

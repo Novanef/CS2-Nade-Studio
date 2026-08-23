@@ -46,7 +46,7 @@ Ce découpage permet de représenter aussi bien un lineup simple (un seul waypoi
 | `referenceType` | enum `"position"` \| `"aim"` \| `"both"` | Quelle donnée fait foi pour valider ce point. `"both"` est réservé au waypoint de type `"throw"` |
 | `position` | `{ x, y, z: float }` | Coordonnées joueur (capturées via GSI ou saisies manuellement) |
 | `viewAngle` | `{ yaw, pitch: float }` | Direction de la visée |
-| `movement` | enum `Movement` | `"stand"`, `"walk"`, `"run"`, `"jump"`, `"runjump"` (avancer + sauter au lancer) — état de déplacement requis à ce point |
+| `movement` | enum `Movement` | `"stand"`, `"walk"`, `"run"`, `"jump"`, `"wjump"` (courir + sauter au lancer, anciennement `"runjump"`), `"walkrunjump"` (marcher puis courir + sauter au lancer) — état de déplacement requis à ce point |
 | `clickType` | enum `ClickType` | `"left"`, `"right"`, `"middle"` — uniquement renseigné si `type = "throw"` |
 | `screenshotRef` | string (optionnel) | Capture d'écran de référence, utile surtout pour un `referenceType = "aim"` |
 | `description` | string (optionnel) | Instruction courte spécifique à ce point, ex. `"Alignez l'antenne avec le mur"` |
@@ -57,7 +57,7 @@ Ce découpage permet de représenter aussi bien un lineup simple (un seul waypoi
 ```
 Side          = "T" | "CT"
 GrenadeType   = "smoke" | "flash" | "molotov" | "he" | "decoy"
-Movement      = "stand" | "walk" | "run" | "jump" | "runjump"
+Movement      = "stand" | "walk" | "run" | "jump" | "wjump" | "walkrunjump"
 ClickType     = "left" | "right" | "middle"
 ReferenceType = "position" | "aim" | "both"
 WaypointType  = "checkpoint" | "throw"
@@ -120,6 +120,15 @@ Référentiel des points de spawn, capturé une seule fois par carte et par camp
 | `side` | enum `Side` | `"T"` ou `"CT"` |
 | `index` | int | Numéro du spawn (1 à 5 généralement) |
 | `position` | `{ x, y, z: float }` | Coordonnées capturées une fois via le plugin |
+
+**Marche à suivre pour mapper les `SpawnPoint` d'une carte** (fait une fois par carte, résultat versionné dans `app/data/seed/spawnpoints.json`) : entièrement pilotable via `curl` sur le serveur dédié local, sans avoir besoin de se connecter avec un client CS2. S'appuie sur trois routes de diagnostic exposées par le plugin (`plugin/LineupCapturePlugin/HttpApiServer.cs`) et sur des réglages déjà actifs via `prac.cfg` sur le serveur dédié : `bot_stop "1"` (les bots restent figés sur leur point de spawn après un `mp_restartgame`, pas besoin de timing serré) et `mp_randomspawn "1"` (chaque `mp_restartgame` redistribue les bots sur un spawn différent parmi ceux disponibles).
+
+1. Changer de carte sans relancer le processus : `curl -X POST "http://localhost:5050/debug/cmd?cmd=changelevel de_<map>"`.
+2. S'assurer d'assez de bots pour couvrir les deux camps, **sans dépasser une composition compétitive réaliste (5 par camp au total, humain(s) inclus)** : vérifier d'abord l'effectif actuel via `curl http://localhost:5050/debug/player_positions` (`team`/`isBot` par joueur — un joueur humain connecté en parallèle sur ce serveur local, ex. pour tester en jeu, est normal et fait partie du décompte), puis compléter avec `curl -X POST "http://localhost:5050/debug/cmd?cmd=bot_add_ct"` / `bot_add_t` uniquement jusqu'à atteindre 5 par camp (`bot_kick` pour retirer le surplus si un `changelevel` a laissé plus de bots que nécessaire d'une carte à l'autre).
+   **Piège observé, systématique après un `changelevel`** : un seul `bot_add_ct`/`bot_add_t` peut ajouter un bot sur les **deux** camps à la fois au lieu d'un seul (autobalance implicite) — les réglages de `prac.cfg` (ex. `mp_autoteambalance "0"`) ne semblent pas se réappliquer de façon fiable au changement de carte. `bot_quota_mode normal` ne corrige **pas** ce comportement (testé à plusieurs reprises, sans effet) — inutile d'essayer, aller **directement** à `bot_quota_mode fill` après chaque `changelevel`, avant tout `bot_add_*`. **Procédure** : après chaque `changelevel`, `bot_kick` puis `bot_quota_mode fill`, puis tester un **unique** `bot_add_ct` et vérifier via `/debug/player_positions` qu'il n'a ajouté qu'un bot d'un seul côté avant de scaler — puis revérifier l'effectif exact via `/debug/player_positions` avant de lancer la boucle de l'étape 4 (et à quelques reprises pendant la boucle, pas seulement au départ).
+3. Dump du sur-ensemble d'entités de spawn (une fois par carte, sert de référentiel pour valider l'étape 4) : `curl http://localhost:5050/debug/spawns` → toutes les entités `info_player_terrorist`/`info_player_counterterrorist` avec leurs `x`/`y`/`z`. C'est un sur-ensemble : il peut inclure des spawns d'autres modes de jeu non utilisés en compétitif.
+4. Échantillonner les spawns réellement utilisés en compétitif, en boucle (~15-20 itérations pour couvrir tous les spawns malgré la redistribution aléatoire) : `curl -X POST "http://localhost:5050/debug/cmd?cmd=mp_restartgame 1"` puis `curl http://localhost:5050/debug/player_positions` (positions de tous les joueurs valides, bots inclus, avec leur `team`) — cumuler les positions distinctes vues au fil des itérations, jusqu'à stabilisation (plus de nouvelle position sur 3-4 restarts consécutifs).
+5. Ajouter une entrée `SpawnPoint` dans `app/data/seed/spawnpoints.json` par position distincte retenue à l'étape 4 (le nombre par camp peut légitimement dépasser 5, ex. Mirage T en a 10).
 
 ## Lineups instantanés (instant smokes)
 

@@ -105,6 +105,24 @@ def get_lineup(lineup_id: str) -> Lineup | None:
     return next((l for l in load_lineups() if l.id == lineup_id), None)
 
 
+def find_lineup_by_spawn(mapId: str, side: str, category: str, spotName: str, spawnPoint: str) -> Lineup | None:
+    """Retrouve le lineup d'un groupe "instant" déjà capturé pour un spawn donné —
+    utilisé en édition pour afficher la capture existante d'un spawn plutôt que de
+    forcer une recapture quand le spawn choisi est déjà fait (voir CaptureSession)."""
+    return next(
+        (
+            l
+            for l in load_lineups()
+            if l.mapId == mapId
+            and l.side == side
+            and l.category == category
+            and l.spotName == spotName
+            and l.spawnPoint == spawnPoint
+        ),
+        None,
+    )
+
+
 def update_lineup(lineup_id: str, **updates) -> Lineup | None:
     lineups = load_lineups()
     lineup = next((l for l in lineups if l.id == lineup_id), None)
