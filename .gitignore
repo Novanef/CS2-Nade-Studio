@@ -41,3 +41,13 @@ app/data/user/
 # --- Claude Code (config locale/session, pas partagée) ---
 .claude/settings.json
 .claude/scheduled_tasks.lock
+
+# --- Tests (app/ui/main_window/e2e) ---
+node_modules/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+.pytest_cache/
+.coverage
+
