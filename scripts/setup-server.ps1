@@ -35,6 +35,10 @@
     Dossier de sortie de compilation du plugin (contient LineupCapturePlugin.dll),
     typiquement plugin\LineupCapturePlugin\bin\Release\net10.0\.
 
+.PARAMETER ServerCfgDir
+    Dossier des configs serveur versionnées (par défaut server-cfg\ à la racine
+    du repo), copiées dans game\csgo\cfg\.
+
 .PARAMETER SkipSteamCmd
     N'appelle pas SteamCMD (le dossier game\ est déjà à jour, par ex. après
     l'avoir déplacé manuellement depuis steamcmd\steamapps\common\...).
@@ -61,6 +65,8 @@ param(
     [string]$MetamodZip,
     [string]$CounterStrikeSharpZip,
     [string]$PluginBuildDir,
+
+    [string]$ServerCfgDir = (Join-Path $PSScriptRoot "..\server-cfg"),
 
     [switch]$SkipSteamCmd,
     [switch]$SkipVerify
@@ -205,27 +211,33 @@ if ($PluginBuildDir) {
 
 # --- 5. Configs serveur (cfg\gamemode_competitive_server.cfg + cfg\prac.cfg) ---
 #     Absents du dépôt Steam — perdus si game\ est un jour remplacé lors d'une
-#     réinstall (voir CLAUDE.md). Écriture idempotente (contenu figé, simple
-#     écrasement).
+#     réinstall (voir CLAUDE.md). Source de vérité : server-cfg\ dans le repo,
+#     copié ici à chaque passage. Une config en place qui diffère (modifiée à la
+#     main dans game\) est d'abord sauvegardée en <nom>.<horodatage>.bak — un
+#     ancien écrasement silencieux a déjà détruit la vraie config une fois.
 
-Write-Step "Écriture des configs serveur (sv_cheats, practice)"
+Write-Step "Configs serveur depuis $ServerCfgDir"
+$ServerCfgDir = [System.IO.Path]::GetFullPath($ServerCfgDir)
+$repoCfgs = @(Get-ChildItem -Path $ServerCfgDir -Filter "*.cfg" -File -ErrorAction SilentlyContinue)
+if ($repoCfgs.Count -eq 0) {
+    throw "Aucune config .cfg trouvée dans $ServerCfgDir — la config practice versionnée est introuvable."
+}
 New-Item -ItemType Directory -Force -Path $CfgDir | Out-Null
 
-Set-Content -Path (Join-Path $CfgDir "gamemode_competitive_server.cfg") -Value @(
-    '// Généré par scripts/setup-server.ps1 — contourne la remise à 0 de sv_cheats'
-    '// par le gamemode compétitif (voir CLAUDE.md).'
-    'sv_cheats 1'
-) -Encoding UTF8
-
-Set-Content -Path (Join-Path $CfgDir "prac.cfg") -Value @(
-    '// Généré par scripts/setup-server.ps1 — réglages practice (voir'
-    '// docs/structure-donnees-lineups.md).'
-    'bot_stop "1"'
-    'mp_randomspawn "1"'
-    'mp_autoteambalance "0"'
-) -Encoding UTF8
-
-Write-Host "gamemode_competitive_server.cfg et prac.cfg écrits."
+foreach ($repoCfg in $repoCfgs) {
+    $dest = Join-Path $CfgDir $repoCfg.Name
+    if (Test-Path $dest) {
+        if ((Get-FileHash $dest).Hash -eq (Get-FileHash $repoCfg.FullName).Hash) {
+            Write-Host "$($repoCfg.Name) déjà à jour."
+            continue
+        }
+        $backup = "$dest.$(Get-Date -Format 'yyyyMMdd-HHmmss').bak"
+        Copy-Item -Path $dest -Destination $backup
+        Write-Warn "$($repoCfg.Name) différait de la version du repo — ancienne version sauvegardée dans $backup. Reporter dans server-cfg\ les modifications à garder."
+    }
+    Copy-Item -Path $repoCfg.FullName -Destination $dest -Force
+    Write-Host "$($repoCfg.Name) copié."
+}
 
 # --- 6. Vérification finale ---
 

@@ -16,6 +16,10 @@ Complète les autres documents du projet. Quatre étapes : le serveur dédié, M
 
 Il ne télécharge pas Metamod/CounterStrikeSharp lui-même (leurs URLs de release changent de version en version) — préparer les archives `.zip` en amont. Peut être relancé sans risque après une mise à jour CS2 qui casse `gameinfo.gi` — c'est d'ailleurs l'usage prévu en cas de blocage post-update. Les étapes manuelles ci-dessous restent le fallback/debug si le script échoue sur un cas non prévu.
 
+**Config practice versionnée** : `gamemode_competitive_server.cfg` et `prac.cfg` vivent dans `server-cfg/` à la racine du repo (source de vérité), et le script les copie dans `game/csgo/cfg/` à chaque passage. Pour modifier la config practice, éditer `server-cfg/` puis relancer le script (avec `-SkipSteamCmd` pour ne pas repasser par SteamCMD). Si la copie dans `game/` a été modifiée à la main entre-temps, le script la sauvegarde en `<nom>.<horodatage>.bak` avant de la remplacer — reporter alors dans `server-cfg/` ce qu'il faut garder.
+
+**Serveur qui refuse de démarrer (« Accès refusé » sur `cs2.exe`)** : fermer l'anti-cheat FACEIT, qui bloque tout processus nommé `cs2.exe` autre que le client lancé par Steam (voir README).
+
 ## 1. Serveur dédié CS2 (via SteamCMD)
 
 Contrairement à CS:GO, CS2 n'a pas d'App ID séparé pour le serveur dédié — c'est le même App ID que le client : **730**.

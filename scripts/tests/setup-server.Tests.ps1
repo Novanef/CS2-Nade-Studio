@@ -51,6 +51,80 @@ Describe "setup-server.ps1 — hook Metamod dans gameinfo.gi" {
     }
 }
 
+function New-FakeServerCfg($dir) {
+    # Équivalent de server-cfg\ du repo (source de vérité de la config practice).
+    New-Item -ItemType Directory -Force -Path $dir | Out-Null
+    Set-Content -Path (Join-Path $dir "prac.cfg") -Value "// prac du repo"
+    Set-Content -Path (Join-Path $dir "gamemode_competitive_server.cfg") -Value "// hook du repo"
+    return $dir
+}
+
+Describe "setup-server.ps1 — configs serveur versionnées (server-cfg\)" {
+    It "copie les configs du repo dans csgo\cfg\" {
+        # Arrange
+        $root = Join-Path $env:TEMP ("setup-server-test-" + [guid]::NewGuid())
+        $csgo = New-FakeInstall (Join-Path $root "server")
+        $repoCfg = New-FakeServerCfg (Join-Path $root "server-cfg")
+
+        try {
+            # Act
+            & $ScriptPath -InstallDir (Join-Path $root "server") -SkipSteamCmd -SkipVerify `
+                -ServerCfgDir $repoCfg *> $null
+
+            # Assert
+            Get-Content (Join-Path $csgo "cfg\prac.cfg") | Should Be "// prac du repo"
+            Get-Content (Join-Path $csgo "cfg\gamemode_competitive_server.cfg") | Should Be "// hook du repo"
+        } finally {
+            Remove-Item -Recurse -Force $root -ErrorAction SilentlyContinue
+        }
+    }
+
+    It "sauvegarde une config en place différente avant de la remplacer" {
+        # Arrange
+        $root = Join-Path $env:TEMP ("setup-server-test-" + [guid]::NewGuid())
+        $csgo = New-FakeInstall (Join-Path $root "server")
+        $repoCfg = New-FakeServerCfg (Join-Path $root "server-cfg")
+        $cfg = Join-Path $csgo "cfg"
+        New-Item -ItemType Directory -Force -Path $cfg | Out-Null
+        Set-Content -Path (Join-Path $cfg "prac.cfg") -Value "// modif faite à la main"
+
+        try {
+            # Act
+            & $ScriptPath -InstallDir (Join-Path $root "server") -SkipSteamCmd -SkipVerify `
+                -ServerCfgDir $repoCfg *> $null
+
+            # Assert
+            Get-Content (Join-Path $cfg "prac.cfg") | Should Be "// prac du repo"
+            $backups = @(Get-ChildItem $cfg -Filter "prac.cfg.*.bak")
+            $backups.Count | Should Be 1
+            Get-Content $backups[0].FullName | Should Be "// modif faite à la main"
+        } finally {
+            Remove-Item -Recurse -Force $root -ErrorAction SilentlyContinue
+        }
+    }
+
+    It "ne crée pas de sauvegarde quand la config en place est identique" {
+        # Arrange
+        $root = Join-Path $env:TEMP ("setup-server-test-" + [guid]::NewGuid())
+        $csgo = New-FakeInstall (Join-Path $root "server")
+        $repoCfg = New-FakeServerCfg (Join-Path $root "server-cfg")
+        $cfg = Join-Path $csgo "cfg"
+        New-Item -ItemType Directory -Force -Path $cfg | Out-Null
+        Copy-Item (Join-Path $repoCfg "prac.cfg") (Join-Path $cfg "prac.cfg")
+
+        try {
+            # Act
+            & $ScriptPath -InstallDir (Join-Path $root "server") -SkipSteamCmd -SkipVerify `
+                -ServerCfgDir $repoCfg *> $null
+
+            # Assert
+            @(Get-ChildItem $cfg -Filter "*.bak").Count | Should Be 0
+        } finally {
+            Remove-Item -Recurse -Force $root -ErrorAction SilentlyContinue
+        }
+    }
+}
+
 Describe "setup-server.ps1 — installation de CounterStrikeSharp" {
     It "extrait l'archive dans csgo\addons\ sans créer de dossier addons\addons\" {
         # Arrange
