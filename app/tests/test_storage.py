@@ -188,6 +188,47 @@ def test_delete_lineups_no_matches_returns_zero(isolated_storage):
     assert [l.id for l in storage.load_lineups()] == ["a"]
 
 
+def test_delete_library_removes_all_lineups_and_screenshots(isolated_storage, tmp_path, monkeypatch):
+    # Arrange
+    screenshots_dir = tmp_path / "screenshots"
+    screenshots_dir.mkdir()
+    (screenshots_dir / "a.png").write_bytes(b"png")
+    (screenshots_dir / "b_zoom.png").write_bytes(b"png")
+    monkeypatch.setattr(storage, "SCREENSHOTS_DIR", screenshots_dir)
+    seed(isolated_storage, [make_lineup_dict(id="a"), make_lineup_dict(id="b", category="instant")])
+
+    # Act
+    deleted = storage.delete_library()
+
+    # Assert
+    assert deleted == 2
+    assert storage.load_lineups() == []
+    assert list(screenshots_dir.iterdir()) == []
+
+
+def test_delete_library_does_not_reseed_from_seed_file(isolated_storage, tmp_path, monkeypatch):
+    # Arrange — un seed présent ne doit pas "ressusciter" la bibliothèque après
+    # suppression (load_lineups ne réinitialise depuis le seed que si le fichier manque).
+    seed_dir = tmp_path / "seed"
+    seed_dir.mkdir()
+    (seed_dir / "lineups.json").write_text(json.dumps([make_lineup_dict(id="seeded")]), encoding="utf-8")
+    monkeypatch.setattr(storage, "SEED_DIR", seed_dir)
+    monkeypatch.setattr(storage, "SCREENSHOTS_DIR", tmp_path / "screenshots")
+    seed(isolated_storage, [make_lineup_dict(id="a")])
+
+    # Act
+    storage.delete_library()
+
+    # Assert
+    assert storage.load_lineups() == []
+
+
+def test_delete_library_on_empty_library_returns_zero(isolated_storage, tmp_path, monkeypatch):
+    monkeypatch.setattr(storage, "SCREENSHOTS_DIR", tmp_path / "screenshots")
+    seed(isolated_storage, [])
+    assert storage.delete_library() == 0
+
+
 def test_delete_lineup_group_removes_all_matching_spawns(isolated_storage):
     seed(isolated_storage, [
         make_lineup_dict(id="a", category="instant", spotName="Instant window", spawnPoint="spawn-1"),

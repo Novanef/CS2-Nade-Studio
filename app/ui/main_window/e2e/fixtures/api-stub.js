@@ -346,6 +346,19 @@ window.pywebview = {
       if (index !== -1) LINEUPS.splice(index, 1);
       return { status: index !== -1 ? "deleted" : "error" };
     },
+    delete_lineups: async (ids) => {
+      const before = LINEUPS.length;
+      for (let i = LINEUPS.length - 1; i >= 0; i--) {
+        if (ids.includes(LINEUPS[i].id)) LINEUPS.splice(i, 1);
+      }
+      return { status: "ok", deleted: before - LINEUPS.length };
+    },
+    get_library_count: async () => LINEUPS.length,
+    delete_library: async () => {
+      const deleted = LINEUPS.length;
+      LINEUPS.length = 0;
+      return { status: "ok", deleted };
+    },
     delete_instant_group: async (mapId, side, spotName) => {
       const before = LINEUPS.length;
       for (let i = LINEUPS.length - 1; i >= 0; i--) {

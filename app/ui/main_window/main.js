@@ -56,6 +56,7 @@ function initToolbarIcons() {
   // Feather d'origine "download"/"upload" (bug signalé par l'utilisateur).
   setButtonIcon("btnExportLibrary", "upload");
   setButtonIcon("btnImportLineups", "download");
+  setButtonIcon("btnDeleteLibrary", "trash");
   setButtonIcon("btnNewLineup", "plus");
   setButtonIcon("btnEditLineup", "pencil");
   setButtonIcon("btnDeleteLineup", "trash");
@@ -514,16 +515,32 @@ function renderLineups() {
   }
   for (const g of groups) {
     const chip = document.createElement("div");
+    // En mode sélection, un spot instant se sélectionne en bloc : tous ses lineups
+    // (un par spawn) entrent/sortent de selectedIds ensemble.
+    const groupIds = g.lineups.map((l) => l.id);
+    const checked = groupIds.every((id) => state.selectedIds.has(id));
     chip.className =
       "chip" +
-      (isGroupView && groupKey(g) === state.selectedInstantSpot ? " active" : "") +
+      (isGroupView && !state.selectionMode && groupKey(g) === state.selectedInstantSpot ? " active" : "") +
       ` ${sideClassName(g.side)}`;
+    const checkbox = state.selectionMode ? `<input type="checkbox" class="chip-select" ${checked ? "checked" : ""}> ` : "";
     chip.innerHTML =
-      `${g.spotName}<br><span class="muted">${grenadeIconBadge(g.grenadeType)} — Instant · ${g.lineups.length}</span>`;
-    chip.onclick = () => {
-      state.selectedInstantSpot = groupKey(g);
-      renderLineups();
-    };
+      `${checkbox}${g.spotName}<br><span class="muted">${grenadeIconBadge(g.grenadeType)} — Instant · ${g.lineups.length}</span>`;
+    if (state.selectionMode) {
+      chip.classList.toggle("active", checked);
+      chip.onclick = () => {
+        for (const id of groupIds) {
+          if (checked) state.selectedIds.delete(id);
+          else state.selectedIds.add(id);
+        }
+        renderLineups();
+      };
+    } else {
+      chip.onclick = () => {
+        state.selectedInstantSpot = groupKey(g);
+        renderLineups();
+      };
+    }
     strip.appendChild(chip);
   }
 
@@ -876,6 +893,17 @@ async function deleteSelection() {
   if (!confirm(`Supprimer définitivement ${count} lineup(s) ? Cette action est irréversible.`)) return;
   await api().delete_lineups([...state.selectedIds]);
   toggleSelectionMode();
+  await refreshLineups();
+}
+
+async function deleteLibrary() {
+  // Compte de toute la bibliothèque (toutes cartes), pas seulement de la liste affichée.
+  const count = await api().get_library_count();
+  if (!confirm(`Supprimer définitivement les ${count} lineup(s) de la bibliothèque et leurs screenshots ? Cette action est irréversible.`)) return;
+  await api().delete_library();
+  if (state.selectionMode) toggleSelectionMode();
+  state.selectedInstantSpot = null;
+  state.selectedLineupId = null;
   await refreshLineups();
 }
 

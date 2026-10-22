@@ -688,6 +688,12 @@ html {
   font-size: 10px;
 }
 
+/* Action destructive globale (#btnDeleteLibrary) : rouge, pour la distinguer de
+   "Supprimer la sélection" à côté. */
+.icon-btn.danger {
+  color: #f87171;
+}
+
 .server-map-badge {
   font-size: 12px;
   color: var(--text-secondary);

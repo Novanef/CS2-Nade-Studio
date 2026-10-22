@@ -160,6 +160,15 @@ class BrowseApi:
         deleted = storage.delete_lineups(lineup_ids)
         return {"status": "ok", "deleted": deleted}
 
+    def get_library_count(self) -> int:
+        """Nombre total de lineups, toutes cartes confondues — pour le message de
+        confirmation de delete_library (la liste affichée n'en montre qu'une carte)."""
+        return len(storage.load_lineups())
+
+    def delete_library(self) -> dict:
+        deleted = storage.delete_library()
+        return {"status": "ok", "deleted": deleted}
+
     def delete_instant_group(self, mapId: str, side: str, spotName: str) -> dict:
         deleted = storage.delete_lineup_group(mapId=mapId, side=side, category="instant", spotName=spotName)
         return {"status": "ok", "deleted": deleted}

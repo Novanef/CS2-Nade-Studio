@@ -184,6 +184,18 @@ def delete_lineups(lineup_ids: list[str]) -> int:
     return deleted
 
 
+def delete_library() -> int:
+    """Vide toute la bibliothèque utilisateur : lineups + screenshots. Réécrit une
+    liste vide plutôt que de supprimer lineups.json — sinon _ensure_seeded
+    réinitialiserait la bibliothèque depuis le seed au prochain chargement."""
+    deleted = len(load_lineups())
+    save_lineups([])
+    if SCREENSHOTS_DIR.exists():
+        shutil.rmtree(SCREENSHOTS_DIR)
+    SCREENSHOTS_DIR.mkdir(parents=True, exist_ok=True)
+    return deleted
+
+
 def delete_lineup_group(mapId: str, side: str, category: str, spotName: str) -> int:
     """Supprime tous les lineups d'un groupe "instant" (un par spawn) en une seule
     lecture/écriture — même rationale que delete_lineups() pour la sélection multiple."""
