@@ -35,6 +35,10 @@
     Dossier de sortie de compilation du plugin (contient LineupCapturePlugin.dll),
     typiquement plugin\LineupCapturePlugin\bin\Release\net10.0\.
 
+.PARAMETER SkipSteamCmd
+    N'appelle pas SteamCMD (le dossier game\ est déjà à jour, par ex. après
+    l'avoir déplacé manuellement depuis steamcmd\steamapps\common\...).
+
 .PARAMETER SkipVerify
     Ne lance pas le serveur pour la vérification finale (utile en CI/sandbox sans
     accès réseau sortant vers Steam, ou pour ne patcher que les fichiers).
@@ -52,13 +56,13 @@ param(
     [Parameter(Mandatory = $true)]
     [string]$InstallDir,
 
-    [Parameter(Mandatory = $true)]
     [string]$SteamCmdExe,
 
     [string]$MetamodZip,
     [string]$CounterStrikeSharpZip,
     [string]$PluginBuildDir,
 
+    [switch]$SkipSteamCmd,
     [switch]$SkipVerify
 )
 
@@ -91,10 +95,17 @@ $CfgDir = Join-Path $Csgo "cfg"
 
 # --- 1. Serveur dédié CS2 via SteamCMD ---
 
-Write-Step "Installation/mise à jour du serveur dédié CS2 (App ID 730)"
-& $SteamCmdExe +force_install_dir $InstallDir +login anonymous +app_update 730 validate +quit
-if ($LASTEXITCODE -ne 0) {
-    throw "steamcmd a échoué (code $LASTEXITCODE)."
+if ($SkipSteamCmd) {
+    Write-Step "Mise à jour SteamCMD ignorée (-SkipSteamCmd)."
+} else {
+    if (-not $SteamCmdExe) {
+        throw "-SteamCmdExe est requis sauf avec -SkipSteamCmd."
+    }
+    Write-Step "Installation/mise à jour du serveur dédié CS2 (App ID 730)"
+    & $SteamCmdExe +force_install_dir $InstallDir +login anonymous +app_update 730 validate +quit
+    if ($LASTEXITCODE -ne 0) {
+        throw "steamcmd a échoué (code $LASTEXITCODE)."
+    }
 }
 
 $Cs2Exe = Join-Path $GameDir "bin\win64\cs2.exe"
@@ -118,27 +129,31 @@ $GameInfoPath = Join-Path $Csgo "gameinfo.gi"
 if (Test-Path $GameInfoPath) {
     Write-Step "Vérification du hook Metamod dans gameinfo.gi"
     $gameInfoLines = Get-Content $GameInfoPath
-    $hookLine = "Game csgo/addons/metamod"
-    $alreadyPatched = $gameInfoLines | Where-Object { $_.Trim() -eq $hookLine }
+    # Le fichier utilise des tabulations entre les tokens, pas des espaces —
+    # comparaison tolérante aux espaces/tabulations dans les deux cas ci-dessous.
+    $hookPattern = "^Game\s+csgo/addons/metamod$"
+    $alreadyPatched = $gameInfoLines | Where-Object { $_.Trim() -match $hookPattern }
 
     if ($alreadyPatched) {
         Write-Host "Ligne déjà présente — rien à faire (idempotent)."
     } else {
         # Piège documenté : chaque mise à jour CS2 réécrit gameinfo.gi et efface
         # cette ligne, sans erreur ni avertissement (voir CLAUDE.md).
-        $anchor = "Game_LowViolence csgo_lv"
-        $anchorIndex = ($gameInfoLines | Select-String -SimpleMatch $anchor | Select-Object -First 1).LineNumber
+        $anchorPattern = "Game_LowViolence\s+csgo_lv"
+        $anchorIndex = ($gameInfoLines | Select-String -Pattern $anchorPattern | Select-Object -First 1).LineNumber
         if (-not $anchorIndex) {
-            throw "Ligne d'ancrage '$anchor' introuvable dans gameinfo.gi — format inattendu, patch manuel requis."
+            throw "Ligne d'ancrage '$anchorPattern' introuvable dans gameinfo.gi — format inattendu, patch manuel requis."
         }
         $newLines = @()
         $newLines += $gameInfoLines[0..($anchorIndex - 1)]
-        $newLines += "`t$hookLine"
+        $newLines += "`tGame`tcsgo/addons/metamod"
         if ($anchorIndex -lt $gameInfoLines.Length) {
             $newLines += $gameInfoLines[$anchorIndex..($gameInfoLines.Length - 1)]
         }
-        Set-Content -Path $GameInfoPath -Value $newLines -Encoding UTF8
-        Write-Host "Ligne Metamod ajoutée sous '$anchor'."
+        # Sans BOM, comme le fichier livré par Valve (Set-Content -Encoding UTF8
+        # en ajoute un sous Windows PowerShell 5.1).
+        [System.IO.File]::WriteAllLines($GameInfoPath, [string[]]$newLines, (New-Object System.Text.UTF8Encoding $false))
+        Write-Host "Ligne Metamod ajoutée sous '$anchorPattern'."
     }
 } else {
     Write-Warn "gameinfo.gi introuvable à $GameInfoPath — étape ignorée."
@@ -151,7 +166,17 @@ if ($CounterStrikeSharpZip) {
     if (-not (Test-Path $CounterStrikeSharpZip)) {
         throw "CounterStrikeSharpZip introuvable : $CounterStrikeSharpZip"
     }
-    Expand-Archive -Path $CounterStrikeSharpZip -DestinationPath $AddonsDir -Force
+    # L'archive contient déjà un dossier racine addons\ : on l'extrait dans
+    # csgo\, pas dans csgo\addons\ (sinon tout atterrit dans addons\addons\,
+    # ignoré par Metamod).
+    Expand-Archive -Path $CounterStrikeSharpZip -DestinationPath $Csgo -Force
+
+    # Reste d'une ancienne version de ce script qui extrayait au mauvais niveau.
+    $nestedAddons = Join-Path $AddonsDir "addons"
+    if (Test-Path $nestedAddons) {
+        Write-Warn "Dossier addons\addons\ trouvé (ancienne extraction au mauvais niveau) — suppression."
+        Remove-Item -Recurse -Force $nestedAddons
+    }
 
     # Piège documenté (CLAUDE.md) : l'archive dépose counterstrikesharp.vdf à la
     # racine de addons\ au lieu de addons\metamod\ — Metamod ne scanne que son
@@ -211,7 +236,7 @@ if ($SkipVerify) {
 
 Write-Step "Démarrage du serveur pour vérification (curl /position)"
 $serverProcess = Start-Process -FilePath $Cs2Exe `
-    -ArgumentList "-dedicated", "+map", "de_mirage", "+sv_lan", "1" `
+    -ArgumentList "-dedicated", "+map", "de_mirage", "+sv_lan", "1", "+sv_hibernate_when_empty", "0" `
     -PassThru -WindowStyle Minimized
 
 try {
