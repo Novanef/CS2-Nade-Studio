@@ -1,3 +1,4 @@
 # Configs serveur copiées octet pour octet dans game\csgo\cfg\ par
 # scripts/setup-server.ps1 (comparaison par hash) : pas de conversion de fins de ligne.
 server-cfg/*.cfg -text
+library/*.zip filter=lfs diff=lfs merge=lfs -text
